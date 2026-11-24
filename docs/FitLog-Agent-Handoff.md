@@ -176,3 +176,12 @@ git pull --ff-only origin main
 - 按用户要求，将整合版 v0.4.1、鼠尾草绿衣架 F 图标、交接文档和交互预览统一进入 main；补充根目录 AGENTS.md，重写 README 为当前功能和版本入口。
 - 后续 Agent 应从 main 获取源码，并在交付时核对默认分支；不能仅声称已上传到其他分支就认为交接完成。
 - 编译、测试与 APK 证书验证结果沿用最近 v0.4.1 验证；此轮仅修正文档入口及分支可见性，不改变应用逻辑，不新增真机验证结论。
+
+
+#### 2026-11-24：第一轮 UI 反馈修改（v0.4.1 基础上）
+
+- 用户以截图标注提出 10 处 UI 反馈，Workbuddy 代理已在本地克隆实现并推送 commit `45dd6b5`（main），`:app:testDebugUnitTest` 13 项全部通过，`:app:assemblePreview` 构建成功；**尚未真机验证**。
+- 已改：删除衣橱/搭配页英文眉题（MY WARDROBE / YOUR COMBINATIONS）；搜索框紧凑化（44dp）；类型筛选 chips 缩小为 34dp；「只看收藏」改 18dp 小复选框；底部导航改自定义布局、高亮胶囊以图标为背景严格对齐；灵感页改为预览版样式（卡片内 标题→描述→90dp 圆角色卡→文字按钮）；身体与尺码页身高体重合排一行（26sp），历史记录改为日期一行 + 六项数据等宽对齐；编辑页全部输入框紧凑化（FitTextField 重写为 44dp），尺码属性行合并为单行（属性名/数值/单位/口径/删除）。
+- **未同步**：`docs/preview/Fuji-FitLog-Preview.html` 与在线预览站点未随 Android 改动更新，用户确认另行处理；HTML 与 Android 界面现已存在差异。
+- 本地构建注意事项（Workbuddy 代理环境，未提交）：`gradle-wrapper.properties` 用腾讯云镜像、`settings.gradle.kts` 加阿里云 Maven 镜像、`app/build.gradle.kts` 本地指 build-tools 36.0.0；Gradle 需带 JVM 代理参数（GRADLE_OPTS -Dhttp.proxyHost 等），Robolectric 的 android-all-instrumented 14-robolectric-10818077-i6 已手动放入 `~/.m2` 缓存。`git push` 需 `-c http.version=HTTP/1.1`（默认 HTTP/2 会被环境代理 502）。
+- 下一步：用户真机安装预览 APK 核对新 UI；HTML 预览与在线站点由用户另行处理；如继续改 UI 按用户反馈迭代。

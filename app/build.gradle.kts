@@ -22,7 +22,7 @@ android {
             initWith(getByName("debug"))
             applicationIdSuffix = ".preview"
             versionNameSuffix = "-preview"
-            resValue("string", "app_name", "服集 FitLog 预览")
+            resValue("string", "app_name", "服集 FitLog")
             matchingFallbacks += listOf("debug")
         }
         release {

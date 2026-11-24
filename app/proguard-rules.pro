@@ -1,0 +1,1 @@
+-keep class com.fitlog.app.data.** { *; }

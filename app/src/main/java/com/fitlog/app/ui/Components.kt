@@ -13,12 +13,18 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -216,7 +223,7 @@ fun IconAction(
 }
 
 /* ============================================================
- * 三级组件：输入框（统一 Focus 态，焦点环清晰可见）
+ * 三级组件：输入框（紧凑版，44dp 高，统一 Focus 态）
  * ============================================================ */
 
 @Composable
@@ -229,22 +236,110 @@ fun FitTextField(
     height: Dp? = null
 ) {
     val colors = FitTheme.colors
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = { Text(placeholder, color = colors.textFaint, fontSize = 13.sp) },
-        modifier = modifier.then(if (height != null) Modifier.height(height) else Modifier),
-        singleLine = singleLine,
+    Surface(
+        modifier = modifier
+            .heightIn(min = 44.dp)
+            .then(if (height != null) Modifier.height(height) else Modifier),
         shape = RoundedCornerShape(Radius.field),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Primary,
-            unfocusedBorderColor = colors.outline,
-            focusedContainerColor = colors.surface,
-            unfocusedContainerColor = colors.surface,
-            cursorColor = Primary
-        ),
-        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, color = colors.textMain)
-    )
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.outline)
+    ) {
+        Row(
+            Modifier.padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = singleLine,
+                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, color = colors.textMain),
+                cursorBrush = SolidColor(Primary),
+                modifier = Modifier.weight(1f).padding(vertical = 12.dp),
+                decorationBox = { inner ->
+                    Box {
+                        if (value.isEmpty() && placeholder.isNotEmpty()) {
+                            Text(placeholder, color = colors.textFaint, fontSize = 13.sp, maxLines = 1)
+                        }
+                        inner()
+                    }
+                }
+            )
+        }
+    }
+}
+
+/** 紧凑搜索框（44dp 圆角胶囊，带搜索图标） */
+@Composable
+fun CompactSearchField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "搜索名称、品牌"
+) {
+    val colors = FitTheme.colors
+    Surface(
+        modifier = modifier.height(44.dp),
+        shape = RoundedCornerShape(Radius.field),
+        color = colors.surface,
+        border = BorderStroke(1.dp, colors.outline)
+    ) {
+        Row(
+            Modifier.fillMaxSize().padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                Icons.Outlined.Search, contentDescription = null,
+                tint = colors.textSub, modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(10.dp))
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                singleLine = true,
+                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, color = colors.textMain),
+                cursorBrush = SolidColor(Primary),
+                modifier = Modifier.weight(1f),
+                decorationBox = { inner ->
+                    Box {
+                        if (value.isEmpty()) {
+                            Text(placeholder, color = colors.textFaint, fontSize = 13.sp, maxLines = 1)
+                        }
+                        inner()
+                    }
+                }
+            )
+        }
+    }
+}
+
+/** 小号复选框：视觉 18dp，外层保留 44dp 触控区 */
+@Composable
+fun CompactCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    val colors = FitTheme.colors
+    val boxShape = RoundedCornerShape(5.dp)
+    Box(
+        Modifier
+            .size(44.dp)
+            .clickable(onClick = { onCheckedChange(!checked) }),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            Modifier
+                .size(18.dp)
+                .then(
+                    if (checked) Modifier.background(Primary, boxShape)
+                    else Modifier.border(1.5.dp, colors.outlineStrong, boxShape)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            if (checked) {
+                Icon(
+                    Icons.Outlined.Check, contentDescription = null,
+                    tint = Color.White, modifier = Modifier.size(13.dp)
+                )
+            }
+        }
+    }
 }
 
 @Composable

@@ -1,10 +1,13 @@
 package com.fitlog.app.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
@@ -12,8 +15,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.fitlog.app.data.*
 import com.fitlog.app.ui.*
 import com.fitlog.app.ui.theme.*
@@ -31,7 +36,7 @@ fun OutfitsScreen(vm:AppViewModel,onNew:()->Unit,onEdit:(Long)->Unit,onCopy:(Lon
     var query by remember { mutableStateOf("") }
     val shown=outfits.filter { (it.name+it.tags+it.occasion).contains(query,true) }
     LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(24.dp)){
-        item {StageReveal(0){Column{StudioHeading("YOUR COMBINATIONS","我的搭配","把喜欢的组合留下，下次直接拿来穿。");Button(onClick=onNew){Icon(Icons.Outlined.Add,contentDescription=null);Text("新建搭配")}}}}
+        item {StageReveal(0){Column{StudioHeading("","我的搭配","把喜欢的组合留下，下次直接拿来穿。");Button(onClick=onNew){Icon(Icons.Outlined.Add,contentDescription=null);Text("新建搭配")}}}}
         if(outfits.isNotEmpty())item {OutlinedTextField(query,{query=it},placeholder={Text("搜索名称、风格、场合")},singleLine=true,modifier=Modifier.fillMaxWidth())}
         if(shown.isEmpty())item {Column(Modifier.padding(vertical=40.dp)){Text(if(outfits.isEmpty())"还没有保存搭配" else "没有找到匹配的搭配",style=Typography2.sectionTitle);Spacer(Modifier.height(12.dp));Text("先选一件想穿的，其他部分可以慢慢调整。",style=Typography2.body,color=FitTheme.colors.textSub)}}
         items(shown,key={it.id}){o->StageReveal(1){Column{
@@ -111,11 +116,22 @@ fun InspirationScreen(vm:AppViewModel,onPalette:(String)->Unit,onStyle:(Long)->U
     val garments by vm.garments.collectAsState()
     LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(28.dp)){
         item{StageReveal(0){StudioHeading("COLOUR & IDEAS","配色灵感","好看的颜色，最终落到你自己的衣物上。")}}
-        items(StudioPalettes.all){p->StageReveal(1){Column{
-            Row(Modifier.fillMaxWidth().height(130.dp)){p.colors.forEach { c->Surface(color=Color(android.graphics.Color.parseColor(c)),modifier=Modifier.weight(1f).fillMaxHeight()){}}}
-            Spacer(Modifier.height(18.dp));Text(p.name,style=Typography2.sectionTitle,color=FitTheme.colors.textMain);Spacer(Modifier.height(10.dp));Text(p.description,style=Typography2.body,color=FitTheme.colors.textSub)
-            TextButton(onClick={onPalette(p.id)},modifier=Modifier.heightIn(min=44.dp)){Text("在衣橱中寻找相近颜色")}
-        }}}
+        items(StudioPalettes.all){p->StageReveal(1){
+            Surface(
+                shape=RoundedCornerShape(16.dp),
+                color=FitTheme.colors.surface,
+                border=BorderStroke(1.dp,FitTheme.colors.line),
+                modifier=Modifier.fillMaxWidth()
+            ){
+                Column(Modifier.padding(16.dp)){
+                    Text(p.name,style=Typography2.cardTitle,color=FitTheme.colors.textMain)
+                    Spacer(Modifier.height(6.dp));Text(p.description,style=Typography2.caption,color=FitTheme.colors.textSub)
+                    Spacer(Modifier.height(12.dp))
+                    Row(Modifier.fillMaxWidth().height(90.dp).clip(RoundedCornerShape(12.dp))){p.colors.forEach { c->Box(Modifier.weight(1f).fillMaxHeight().background(Color(android.graphics.Color.parseColor(c))))}}
+                    TextButton(onClick={onPalette(p.id)},contentPadding=PaddingValues(horizontal=0.dp),modifier=Modifier.heightIn(min=44.dp)){Text("在衣橱中寻找相近颜色",fontSize=13.sp,color=MaterialTheme.colorScheme.primary)}
+                }
+            }
+        }}
         item{StageReveal(2){StudioNote("这是配色灵感示例，不代表你的个人四季色彩结论。主色可以在衣物编辑中修正。")}}
         if(garments.any{Styling.slot(it.type)!=Styling.Slot.NONE})item{TextButton(onClick={onStyle(garments.first{Styling.slot(it.type)!=Styling.Slot.NONE}.id)}){Text("从一件已有单品开始搭配")}}
     }

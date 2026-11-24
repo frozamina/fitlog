@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.fitlog.app.data.*
 import com.fitlog.app.ui.*
 import com.fitlog.app.ui.theme.*
@@ -23,13 +24,13 @@ fun ListScreen(vm:AppViewModel,onOpen:(Long)->Unit,onAdd:()->Unit={},onStyle:(Lo
     val shown=garments.filter { g -> (category=="全部"||g.type==category)&&(!favorite||g.favorite)&&(query.isBlank()||(g.name+" "+g.brand).contains(query,true))&&(group==null||Styling.matchesPalette(g.mainColor,group.colors)) }
     LazyVerticalGrid(columns=GridCells.Adaptive(156.dp),modifier=Modifier.fillMaxSize(),contentPadding=PaddingValues(start=20.dp,end=20.dp,bottom=32.dp),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalArrangement=Arrangement.spacedBy(26.dp)){
         item(span={GridItemSpan(maxLineSpan)}){StageReveal(0){Column{
-            StudioHeading("MY WARDROBE","我的衣橱","先选一件想穿的，再找到它的搭配。")
+            StudioHeading("", "我的衣橱", "先选一件想穿的，再找到它的搭配。")
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("${garments.size} 件衣物",style=Typography2.caption,color=FitTheme.colors.textSub);Button(onClick=onAdd){Icon(Icons.Outlined.Add,contentDescription=null);Text("录入衣物")}}
         }}}
         item(span={GridItemSpan(maxLineSpan)}){StageReveal(1){Column{
-            OutlinedTextField(query,{query=it},placeholder={Text("搜索名称、品牌")},leadingIcon={Icon(Icons.Outlined.Search,contentDescription=null)},singleLine=true,modifier=Modifier.fillMaxWidth())
-            Spacer(Modifier.height(12.dp));FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){(listOf("全部")+garments.map { it.type }.distinct()).forEach { t -> FilterChip(colors=FilterChipDefaults.filterChipColors(selectedContainerColor=if(FitTheme.colors.isDark) FitTheme.colors.surfaceVariant else PrimaryLight, selectedLabelColor=if(FitTheme.colors.isDark) FitTheme.colors.textMain else PrimaryDark),selected=t==category,onClick={category=t},label={Text(t)},modifier=Modifier.heightIn(min=44.dp)) }}
-            Row(verticalAlignment=Alignment.CenterVertically){Checkbox(favorite,{favorite=it});Text("只看收藏",style=Typography2.caption,color=FitTheme.colors.textSub)}
+            CompactSearchField(query, { query = it }, Modifier.fillMaxWidth())
+            Spacer(Modifier.height(10.dp));FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){(listOf("全部")+garments.map { it.type }.distinct()).forEach { t -> FilterChip(colors=FilterChipDefaults.filterChipColors(selectedContainerColor=if(FitTheme.colors.isDark) FitTheme.colors.surfaceVariant else PrimaryLight, selectedLabelColor=if(FitTheme.colors.isDark) FitTheme.colors.textMain else PrimaryDark),selected=t==category,onClick={category=t},label={Text(t,fontSize=13.sp)},modifier=Modifier.height(34.dp)) }}
+            Row(verticalAlignment=Alignment.CenterVertically){CompactCheckbox(favorite,{favorite=it});Text("只看收藏",style=Typography2.caption,color=FitTheme.colors.textSub)}
             if(group!=null)StudioNote("灵感色组：${group.name}。只显示主色相近的衣物。")
             if(group!=null)TextButton(onClick={palette=""}){Text("清除色组筛选")}
         }}}

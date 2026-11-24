@@ -3,12 +3,18 @@ package com.fitlog.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,9 +36,30 @@ fun AppNav(){
     val error by vm.errors.collectAsState()
     Scaffold(containerColor=FitTheme.colors.bg,
         topBar={if(top)TopAppBar(title={Text("服集 FitLog",fontSize=27.sp,color=FitTheme.colors.textMain)},actions={TextButton(onClick={nav.navigate("settings")}){Icon(Icons.Outlined.Tune,contentDescription=null,modifier=Modifier.size(18.dp));Spacer(Modifier.width(6.dp));Text("我的",fontSize=14.sp)}},colors=TopAppBarDefaults.topAppBarColors(containerColor=FitTheme.colors.bg))},
-        bottomBar={if(top)NavigationBar(containerColor=FitTheme.colors.surface,tonalElevation=0.dp){
+        bottomBar={if(top)Row(
+            Modifier.fillMaxWidth().background(FitTheme.colors.surface).navigationBarsPadding().height(64.dp),
+            horizontalArrangement=Arrangement.SpaceEvenly,
+            verticalAlignment=Alignment.CenterVertically
+        ){
             listOf(Triple("closet","衣橱",Icons.Outlined.Checkroom),Triple("outfits","搭配",Icons.Outlined.Layers),Triple("inspiration","灵感",Icons.Outlined.Palette)).forEach { (path,label,icon) ->
-                NavigationBarItem(selected=route?.startsWith(path)==true,onClick={nav.navigate(path){popUpTo("closet?palette={palette}"){saveState=true};launchSingleTop=true;restoreState=true}},icon={Icon(icon,contentDescription=null)},label={Text(label,fontSize=13.sp)},colors=NavigationBarItemDefaults.colors(indicatorColor=PrimaryLight,selectedIconColor=Primary,selectedTextColor=Primary))
+                val selected=route?.startsWith(path)==true
+                Column(
+                    Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable{nav.navigate(path){popUpTo("closet?palette={palette}"){saveState=true};launchSingleTop=true;restoreState=true}}
+                        .padding(horizontal=10.dp,vertical=6.dp),
+                    horizontalAlignment=Alignment.CenterHorizontally
+                ){
+                    // 高亮胶囊直接作为图标背景，与图标严格对齐
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(if(selected)PrimaryLight else Color.Transparent)
+                            .padding(horizontal=16.dp,vertical=4.dp)
+                    ){Icon(icon,contentDescription=null,tint=if(selected)Primary else FitTheme.colors.textSub,modifier=Modifier.size(22.dp))}
+                    Spacer(Modifier.height(2.dp))
+                    Text(label,fontSize=11.sp,color=if(selected)Primary else FitTheme.colors.textSub)
+                }
             }
         }}
     ){padding->

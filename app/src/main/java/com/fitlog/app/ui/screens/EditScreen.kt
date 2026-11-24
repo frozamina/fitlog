@@ -255,24 +255,33 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                 attrs.forEachIndexed { i, a ->
                     key(i) {
                         var basisMenu by remember { mutableStateOf(false) }
-                        Column(Modifier.padding(bottom=20.dp)) {
-                            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                                FitTextField(a.name,{attrs[i]=a.copy(name=it)},Modifier.weight(1.2f),"属性名")
-                                Spacer(Modifier.width(8.dp))
-                                FitTextField(a.value,{attrs[i]=a.copy(value=it)},Modifier.weight(.8f),"数值")
-                                IconAction("×",FitRed,{attrs.removeAt(i)})
-                            }
-                            Row(Modifier.fillMaxWidth().padding(top=8.dp),verticalAlignment=Alignment.CenterVertically) {
-                                FitTextField(a.unit,{attrs[i]=a.copy(unit=it)},Modifier.width(90.dp),"单位")
-                                Spacer(Modifier.width(12.dp))
-                                Box { TextButton(onClick={basisMenu=true},modifier=Modifier.heightIn(min=44.dp)){Text(a.basis.ifBlank { "选择测量口径" })}
-                                    DropdownMenu(basisMenu,{basisMenu=false}) {
-                                        listOf("未注明","长度","周长","平铺单面","未拉伸","拉伸后").forEach { value ->
-                                            DropdownMenuItem(text={Text(value)},onClick={attrs[i]=a.copy(basis=if(value=="未注明")"" else value);basisMenu=false})
-                                        }
+                        Row(
+                            Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            FitTextField(a.name, { attrs[i] = a.copy(name = it) }, Modifier.weight(1.2f), "属性名")
+                            FitTextField(a.value, { attrs[i] = a.copy(value = it) }, Modifier.weight(0.9f), "数值")
+                            FitTextField(a.unit, { attrs[i] = a.copy(unit = it) }, Modifier.width(52.dp), "单位")
+                            Box {
+                                TextButton(
+                                    onClick = { basisMenu = true },
+                                    contentPadding = PaddingValues(horizontal = 6.dp),
+                                    modifier = Modifier.heightIn(min = 44.dp)
+                                ) {
+                                    Text(
+                                        a.basis.ifBlank { "口径" },
+                                        fontSize = 12.sp, maxLines = 1,
+                                        color = FitTheme.colors.textSub
+                                    )
+                                }
+                                DropdownMenu(basisMenu, { basisMenu = false }) {
+                                    listOf("未注明", "长度", "周长", "平铺单面", "未拉伸", "拉伸后").forEach { value ->
+                                        DropdownMenuItem(text = { Text(value) }, onClick = { attrs[i] = a.copy(basis = if (value == "未注明") "" else value); basisMenu = false })
                                     }
                                 }
                             }
+                            IconAction("×", FitRed, { attrs.removeAt(i) }, fontSize = 14)
                         }
                     }
                 }
@@ -290,7 +299,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                         FitTextField(
                             value = newAttrName,
                             onValueChange = { newAttrName = it },
-                            modifier = Modifier.weight(1f).height(52.dp),
+                            modifier = Modifier.weight(1f),
                             placeholder = "属性名，如 袖长"
                         )
                         Spacer(Modifier.width(Spacing.s))
@@ -302,7 +311,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                                     showAddAttr = false
                                 }
                             },
-                            modifier = Modifier.height(52.dp),
+                            modifier = Modifier.height(Touch.button),
                             shape = RoundedCornerShape(Radius.field),
                             colors = ButtonDefaults.buttonColors(containerColor = Primary)
                         ) { Text("添加") }

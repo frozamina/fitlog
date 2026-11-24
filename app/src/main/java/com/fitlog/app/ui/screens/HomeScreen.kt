@@ -125,10 +125,34 @@ private fun BodyHeroCard(latest: BodyProfile?, onEdit: () -> Unit) {
                 Column(Modifier.weight(1f)) {
                     Text("我的身体数据", fontSize = 13.sp, color = FitTheme.colors.textSub)
                     Spacer(Modifier.height(Spacing.xs))
-                    Text(
-                        "${fmt(latest?.height)} cm · ${fmt(latest?.weight)} kg",
-                        style = Typography2.numberBig, color = FitTheme.colors.textMain
-                    )
+                    // 身高体重合排一行：大数字 + 小单位，避免换行
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            fmt(latest?.height),
+                            style = Typography2.numberBig.copy(fontSize = 26.sp, lineHeight = 34.sp),
+                            color = FitTheme.colors.textMain
+                        )
+                        Text(
+                            " cm",
+                            fontSize = 14.sp, color = FitTheme.colors.textSub,
+                            modifier = Modifier.padding(bottom = 5.dp)
+                        )
+                        Text(
+                            "  ·  ",
+                            fontSize = 14.sp, color = FitTheme.colors.textSub,
+                            modifier = Modifier.padding(bottom = 5.dp)
+                        )
+                        Text(
+                            fmt(latest?.weight),
+                            style = Typography2.numberBig.copy(fontSize = 26.sp, lineHeight = 34.sp),
+                            color = FitTheme.colors.textMain
+                        )
+                        Text(
+                            " kg",
+                            fontSize = 14.sp, color = FitTheme.colors.textSub,
+                            modifier = Modifier.padding(bottom = 5.dp)
+                        )
+                    }
                 }
                 Box(
                     Modifier
@@ -248,22 +272,44 @@ private fun GarmentRow(vm: AppViewModel, g: Garment, onClick: (Long) -> Unit) {
     }
 }
 
-/* ---------- 历史行 ---------- */
+/* ---------- 历史行：日期一行，六项数据等宽对齐排列 ---------- */
 
 @Composable
 private fun HistoryRow(p: BodyProfile, onDelete: () -> Unit) {
-    Row(
+    Column(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = Spacing.s),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = Spacing.s)
     ) {
-        Text(
-            "${formatDate(p.date)}　${fmt(p.height)}cm · ${fmt(p.weight)}kg　胸${fmt(p.chest)} 腰${fmt(p.waist)} 臀${fmt(p.hip)} 肩${fmt(p.shoulder)}",
-            style = Typography2.caption, color = FitTheme.colors.textSub,
-            modifier = Modifier.weight(1f)
-        )
-        IconAction("✕", FitRed, onDelete, fontSize = 13)
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                formatDate(p.date),
+                fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                color = FitTheme.colors.textMain,
+                modifier = Modifier.weight(1f)
+            )
+            IconAction("✕", FitRed, onDelete, fontSize = 13)
+        }
+        Spacer(Modifier.height(4.dp))
+        Row(Modifier.fillMaxWidth()) {
+            HistoryCell("身高", fmt(p.height), Modifier.weight(1f))
+            HistoryCell("体重", fmt(p.weight), Modifier.weight(1f))
+            HistoryCell("胸围", fmt(p.chest), Modifier.weight(1f))
+            HistoryCell("腰围", fmt(p.waist), Modifier.weight(1f))
+            HistoryCell("臀围", fmt(p.hip), Modifier.weight(1f))
+            HistoryCell("肩宽", fmt(p.shoulder), Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun HistoryCell(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier) {
+        Text(label, fontSize = 10.sp, color = FitTheme.colors.textSub)
+        Spacer(Modifier.height(1.dp))
+        Text(value, fontSize = 13.sp, color = FitTheme.colors.textMain)
     }
 }
 

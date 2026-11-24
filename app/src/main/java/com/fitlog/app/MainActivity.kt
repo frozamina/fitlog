@@ -55,9 +55,9 @@ fun AppNav(){
                         Modifier
                             .clip(RoundedCornerShape(999.dp))
                             .background(if(selected)PrimaryLight else Color.Transparent)
-                            .padding(horizontal=16.dp,vertical=3.dp)
+                            .padding(horizontal=16.dp,vertical=2.dp)
                     ){Icon(icon,contentDescription=null,tint=if(selected)Primary else FitTheme.colors.textSub,modifier=Modifier.size(20.dp))}
-                    Spacer(Modifier.height(1.dp))
+                    Spacer(Modifier.height(0.dp))
                     Text(label,fontSize=11.sp,color=if(selected)Primary else FitTheme.colors.textSub)
                 }
             }

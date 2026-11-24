@@ -57,7 +57,7 @@ fun HomeScreen(vm: AppViewModel, onAdd: () -> Unit, onOpenGarment: (Long) -> Uni
         BodyHeroCard(latest = latest, onEdit = { showEdit = true })
 
         SectionTitle("我的衣物（${garments.size} 件）") {
-            Text("全部 ▸", fontSize = 11.sp, color = Primary)
+            Text("全部 ▸", fontSize = 13.sp, color = Primary)
         }
 
         if (garments.isEmpty()) {
@@ -77,7 +77,7 @@ fun HomeScreen(vm: AppViewModel, onAdd: () -> Unit, onOpenGarment: (Long) -> Uni
         SectionTitle("身体数据历史") {
             Text(
                 if (showAllHistory) "收起" else "查看全部 ▸",
-                fontSize = 11.sp, color = Primary,
+                fontSize = 13.sp, color = Primary,
                 modifier = Modifier
                     .clickable { showAllHistory = !showAllHistory }
                     .padding(vertical = Spacing.s, horizontal = Spacing.xs)
@@ -117,28 +117,24 @@ private fun BodyHeroCard(latest: BodyProfile?, onEdit: () -> Unit) {
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(Radius.hero))
-            .background(
-                Brush.linearGradient(
-                    listOf(Color(0xFF3B6FE0), Color(0xFF5E8BEE), Color(0xFF7BA3F2))
-                )
-            )
+            .background(FitTheme.colors.surface)
             .padding(Spacing.l)
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text("我的身体数据", fontSize = 11.sp, color = Color.White.copy(alpha = 0.82f))
+                    Text("我的身体数据", fontSize = 13.sp, color = FitTheme.colors.textSub)
                     Spacer(Modifier.height(Spacing.xs))
                     Text(
                         "${fmt(latest?.height)} cm · ${fmt(latest?.weight)} kg",
-                        style = Typography2.numberBig, color = Color.White
+                        style = Typography2.numberBig, color = FitTheme.colors.textMain
                     )
                 }
                 Box(
                     Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(Radius.field))
-                        .background(Color.White.copy(alpha = 0.16f)),
+                        .background(FitTheme.colors.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) { Text("🧍", fontSize = 24.sp) }
             }
@@ -150,22 +146,22 @@ private fun BodyHeroCard(latest: BodyProfile?, onEdit: () -> Unit) {
                 BodyCell("肩宽", fmt(latest?.shoulder), Modifier.weight(1f))
             }
             Spacer(Modifier.height(Spacing.m))
-            Divider(color = Color.White.copy(alpha = 0.22f), thickness = 1.dp)
+            Divider(color = FitTheme.colors.line, thickness = 1.dp)
             Spacer(Modifier.height(Spacing.s))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "上次更新：${if (latest != null) formatDate(latest.date) else "暂无"}",
-                    fontSize = 11.sp, color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 13.sp, color = FitTheme.colors.textSub,
                     modifier = Modifier.weight(1f)
                 )
                 Surface(
                     shape = RoundedCornerShape(Radius.chip),
-                    color = Color.White.copy(alpha = 0.2f),
+                    color = FitTheme.colors.surfaceVariant,
                     modifier = Modifier.clickable(onClick = onEdit)
                 ) {
                     Text(
-                        "更新数据", fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
+                        "更新数据", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                        color = FitTheme.colors.textMain,
                         modifier = Modifier.padding(horizontal = Spacing.m, vertical = 6.dp)
                     )
                 }
@@ -177,9 +173,9 @@ private fun BodyHeroCard(latest: BodyProfile?, onEdit: () -> Unit) {
 @Composable
 private fun BodyCell(label: String, value: String, modifier: Modifier) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, fontSize = 10.sp, color = Color.White.copy(alpha = 0.85f))
+        Text(label, fontSize = 13.sp, color = FitTheme.colors.textSub)
         Spacer(Modifier.height(2.dp))
-        Text(value, style = Typography2.numberMid, color = Color.White)
+        Text(value, style = Typography2.numberMid, color = FitTheme.colors.textMain)
     }
 }
 

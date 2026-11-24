@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 /**
  * 设计 Token 体系
  * 来源：《UI 设计系统》规范 —— Apple 8pt 网格 + Material 3 动效原则
- * 主色保持 FitLog 品牌蓝 #3B6FE0
+ * Sage & Ivory 语义令牌；装饰克制、交互可达
  */
 
 /** 8pt 间距网格（严格 4 的倍数，主节奏 8） */
@@ -76,5 +76,5 @@ object Motion {
 }
 
 /** 交错入场延迟（列表项 stagger） */
-fun staggerDelay(index: Int, step: Int = 45, max: Int = 270): Int =
+fun staggerDelay(index: Int, step: Int = 80, max: Int = 320): Int =
     (index * step).coerceAtMost(max)

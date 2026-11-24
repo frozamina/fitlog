@@ -23,6 +23,20 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val bodyHistory: StateFlow<List<BodyProfile>> =
         repo.bodyHistory().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val imageLibrary = repo.allImages().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val attributeLibrary = repo.allAttrs().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    suspend fun loadOutfit(id:Long)=repo.loadOutfit(id)
+    val outfits = repo.outfits().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val outfitPieces = repo.outfitPieces().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val errors = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
+    val saving = kotlinx.coroutines.flow.MutableStateFlow(false)
+    fun clearError() { errors.value = null }
+    fun favorite(id: Long) = viewModelScope.launch { runCatching { repo.favorite(id) }.onFailure { errors.value=it.message } }
+    fun saveOutfit(outfit: com.fitlog.app.data.Outfit, ids: List<Long>, done: (Long)->Unit) = viewModelScope.launch {
+        if(saving.value)return@launch
+        saving.value=true
+        try { done(repo.saveOutfit(outfit,ids)) } catch(e:Exception){errors.value=e.message?:"保存失败，请重试"} finally{saving.value=false}
+    }
     val allTemplates =
         repo.allTemplates().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -44,8 +58,9 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         images: List<GarmentImage>,
         done: (Long) -> Unit = {}
     ) = viewModelScope.launch {
-        val id = repo.saveGarment(garment, attrs, images)
-        done(id)
+        if(saving.value)return@launch
+        saving.value=true
+        try { done(repo.saveGarment(garment,attrs,images)) } catch(e:Exception){errors.value=e.message?:"保存失败，请重试"} finally{saving.value=false}
     }
 
     fun deleteGarment(id: Long, done: () -> Unit = {}) = viewModelScope.launch {

@@ -233,25 +233,25 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
 
                 SectionTitle("颜色与版型")
                 LabeledField("主色（可选）",mainColor,{mainColor=it},"色号 #RRGGBB 或颜色名，如 黑色 / 雾蓝")
-                // 常用色板（低饱和衣物色）
+                // 常用色板（低饱和衣物色）——颜色只解析一次，绘制不再重复 parse
+                val swatchColors = remember { GarmentSwatches.map { Color(android.graphics.Color.parseColor(it)) } }
                 FlowRow(
                     Modifier.fillMaxWidth().padding(bottom = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    GarmentSwatches.forEach { hex ->
-                        val selected = mainColor.equals(hex, true)
+                    swatchColors.forEachIndexed { si, c ->
+                        val selected = mainColor.equals(GarmentSwatches[si], true)
                         Box(
                             Modifier
                                 .size(34.dp)
-                                .clip(CircleShape)
-                                .background(Color(android.graphics.Color.parseColor(hex)))
+                                .background(c, CircleShape)
                                 .border(
                                     if (selected) 2.5.dp else 1.dp,
                                     if (selected) PrimaryDark else FitTheme.colors.line,
                                     CircleShape
                                 )
-                                .clickable { mainColor = hex }
+                                .clickable { mainColor = GarmentSwatches[si] }
                         )
                     }
                 }
@@ -354,7 +354,6 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                         Modifier
                             .fillMaxWidth()
                             .height(Touch.button)
-                            .clip(RoundedCornerShape(Radius.field))
                             .border(1.5.dp, FitTheme.colors.outlineStrong, RoundedCornerShape(Radius.field))
                             .clickable { showAddAttr = true },
                         contentAlignment = Alignment.Center
@@ -373,8 +372,10 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                                 .weight(1f)
                                 .height(Touch.button)
                                 .padding(end = Spacing.s)
-                                .clip(RoundedCornerShape(Radius.field))
-                                .background(if (selected) r.color else FitTheme.colors.surfaceVariant)
+                                .background(
+                                    if (selected) r.color else FitTheme.colors.surfaceVariant,
+                                    RoundedCornerShape(Radius.field)
+                                )
                                 .clickable { fit = r },
                             contentAlignment = Alignment.Center
                         ) {
@@ -433,8 +434,9 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                                             AsyncImage(
                                                 model = coil.request.ImageRequest.Builder(context)
                                                     .data(File(item.path))
-                                                    // 缩略图网格限定解码尺寸，避免原图解码拖慢滑动
-                                                    .size(720)
+                                                    // 缩略图按网格实际显示尺寸解码（约 360px），RGB_565 减半纹理带宽
+                                                    .size(360)
+                                                    .bitmapConfig(android.graphics.Bitmap.Config.RGB_565)
                                                     .build(),
                                                 contentDescription = null,
                                                 modifier = Modifier.fillMaxSize()
@@ -445,8 +447,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                                                     modifier = Modifier
                                                         .align(Alignment.BottomStart)
                                                         .padding(Spacing.xs)
-                                                        .clip(RoundedCornerShape(Spacing.xs))
-                                                        .background(Color(0x99000000))
+                                                        .background(Color(0x99000000), RoundedCornerShape(Spacing.xs))
                                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                                 )
                                             }
@@ -462,8 +463,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                                                     Modifier
                                                         .padding(Spacing.xs)
                                                         .size(20.dp)
-                                                        .clip(RoundedCornerShape(Spacing.xs))
-                                                        .background(Color(0x99000000)),
+                                                        .background(Color(0x99000000), RoundedCornerShape(Spacing.xs)),
                                                     contentAlignment = Alignment.Center
                                                 ) { Text("✕", fontSize = 13.sp, color = Color.White) }
                                             }
@@ -472,7 +472,6 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                                         Box(
                                             Modifier
                                                 .fillMaxSize()
-                                                .clip(RoundedCornerShape(Radius.field))
                                                 .border(1.5.dp, FitTheme.colors.outlineStrong, RoundedCornerShape(Radius.field))
                                                 .clickable { if (images.size < 9) pickLauncher.launch("image/*") else toast = "最多 9 张" },
                                             contentAlignment = Alignment.Center

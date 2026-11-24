@@ -140,8 +140,7 @@ fun TypeChip(label: String, selected: Boolean, onClick: () -> Unit) {
             .padding(end = Spacing.s, bottom = Spacing.s)
             .height(Touch.min)
             .scale(scale)
-            .clip(RoundedCornerShape(Radius.chip))
-            .background(bg)
+            .background(bg, RoundedCornerShape(Radius.chip))
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
             .padding(horizontal = Spacing.base),
         contentAlignment = Alignment.Center

@@ -64,7 +64,7 @@ fun GarmentTile(g:Garment,photo:String?,onOpen:()->Unit,onStyle:(()->Unit)?=null
         Spacer(Modifier.height(12.dp));Text(g.brand.ifBlank { g.type },style=Typography2.caption,color=FitTheme.colors.textSub)
         Text(g.name,style=Typography2.cardTitle,color=FitTheme.colors.textMain,maxLines=2)
         Row(verticalAlignment=Alignment.CenterVertically){garmentColor(g)?.let { Box(Modifier.padding(end=6.dp).size(12.dp).background(it,RoundedCornerShape(6.dp)).border(1.dp,FitTheme.colors.line,RoundedCornerShape(6.dp))) };Text(g.sizeLabel.ifBlank { "未记录标码" },style=Typography2.caption,color=FitTheme.colors.textSub)}
-        if(onStyle!=null)TextButton(onClick=onStyle,contentPadding=PaddingValues(0.dp),modifier=Modifier.heightIn(min=44.dp)){Text("用这件搭配",color=MaterialTheme.colorScheme.primary)}
+        if(onStyle!=null)TextButton(onClick=onStyle,contentPadding=PaddingValues(0.dp),modifier=Modifier.heightIn(min=40.dp)){Text("用这件搭配",color=MaterialTheme.colorScheme.primary)}
     }
 }
 @Composable

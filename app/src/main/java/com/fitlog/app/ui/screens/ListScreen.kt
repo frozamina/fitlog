@@ -22,7 +22,7 @@ fun ListScreen(vm:AppViewModel,onOpen:(Long)->Unit,onAdd:()->Unit={},onStyle:(Lo
     var query by remember { mutableStateOf("") };var category by remember { mutableStateOf("全部") };var favorite by remember { mutableStateOf(false) };var palette by remember(paletteId){mutableStateOf(paletteId)}
     val group=StudioPalettes.all.find { it.id==palette }
     val shown=garments.filter { g -> (category=="全部"||g.type==category)&&(!favorite||g.favorite)&&(query.isBlank()||(g.name+" "+g.brand).contains(query,true))&&(group==null||Styling.matchesPalette(g.mainColor,group.colors)) }
-    LazyVerticalGrid(columns=GridCells.Adaptive(156.dp),modifier=Modifier.fillMaxSize(),contentPadding=PaddingValues(start=20.dp,end=20.dp,bottom=32.dp),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalArrangement=Arrangement.spacedBy(26.dp)){
+    LazyVerticalGrid(columns=GridCells.Adaptive(156.dp),modifier=Modifier.fillMaxSize(),contentPadding=PaddingValues(start=20.dp,end=20.dp,bottom=88.dp),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalArrangement=Arrangement.spacedBy(26.dp)){
         item(span={GridItemSpan(maxLineSpan)}){StageReveal(0){Column{
             StudioHeading("", "我的衣橱", "先选一件想穿的，再找到它的搭配。")
             Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("${garments.size} 件衣物",style=Typography2.caption,color=FitTheme.colors.textSub);Button(onClick=onAdd){Icon(Icons.Outlined.Add,contentDescription=null);Text("录入衣物")}}

@@ -138,7 +138,7 @@ fun TypeChip(label: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
             .padding(end = Spacing.s, bottom = Spacing.s)
-            .height(Touch.min)
+            .height(36.dp)
             .scale(scale)
             .background(bg, RoundedCornerShape(Radius.chip))
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
@@ -237,7 +237,7 @@ fun FitTextField(
     val colors = FitTheme.colors
     Surface(
         modifier = modifier
-            .heightIn(min = 44.dp)
+            .heightIn(min = 40.dp)
             .then(if (height != null) Modifier.height(height) else Modifier),
         shape = RoundedCornerShape(Radius.field),
         color = colors.surface,
@@ -253,7 +253,7 @@ fun FitTextField(
                 singleLine = singleLine,
                 textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, color = colors.textMain),
                 cursorBrush = SolidColor(Primary),
-                modifier = Modifier.weight(1f).padding(vertical = 12.dp),
+                modifier = Modifier.weight(1f).padding(vertical = 10.dp),
                 decorationBox = { inner ->
                     Box {
                         if (value.isEmpty() && placeholder.isNotEmpty()) {

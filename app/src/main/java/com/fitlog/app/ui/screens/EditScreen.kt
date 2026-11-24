@@ -219,15 +219,18 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                 }
                 LabeledField("衣物名称 *", name, { name = it }, "如：优衣库 摇粒绒外套")
                 Row(Modifier.fillMaxWidth()) {
-                    Box(Modifier.weight(1f)) {
-                        LabeledField("尺码标签（可选）", sizeLabel, { sizeLabel = it }, "如 XL / 31")
+                    Box(Modifier.weight(0.8f)) {
+                        LabeledField("尺码", sizeLabel, { sizeLabel = it }, "XL / 31")
                     }
                     Spacer(Modifier.width(Spacing.m))
-                    Box(Modifier.weight(1f)) {
+                    Box(Modifier.weight(1.4f)) {
                         LabeledField("品牌", brand, { brand = it }, "如 优衣库")
                     }
+                    Spacer(Modifier.width(Spacing.m))
+                    Box(Modifier.weight(0.9f)) {
+                        LabeledField("价格", price, { price = it }, "如 199")
+                    }
                 }
-                LabeledField("价格（可选）", price, { price = it }, "如 199")
 
                 Spacer(Modifier.height(Spacing.s))
 
@@ -255,10 +258,10 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                         )
                     }
                 }
-                // 拖拽自定义选色（仿美图秀秀/醒图）
+                // 拖拽自定义选色（仿美图秀秀/醒图）——先 padding 再定高，避免按钮内容被裁
                 OutlinedButton(
                     onClick = { showColorPicker = true },
-                    modifier = Modifier.fillMaxWidth().height(44.dp).padding(bottom = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).height(40.dp),
                     shape = RoundedCornerShape(Radius.field),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary)
                 ) { Text("🎨 自定义颜色（拖动选色）", fontSize = 14.sp) }
@@ -298,7 +301,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                                 TextButton(
                                     onClick = { basisMenu = true },
                                     contentPadding = PaddingValues(horizontal = 6.dp),
-                                    modifier = Modifier.heightIn(min = 44.dp)
+                                    modifier = Modifier.heightIn(min = 40.dp)
                                 ) {
                                     Text(
                                         a.basis.ifBlank { "口径" },
@@ -370,7 +373,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                         Box(
                             Modifier
                                 .weight(1f)
-                                .height(Touch.button)
+                                .height(38.dp)
                                 .padding(end = Spacing.s)
                                 .background(
                                     if (selected) r.color else FitTheme.colors.surfaceVariant,
@@ -380,7 +383,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                r.label, fontSize = 13.sp,
+                                r.label, fontSize = 14.sp,
                                 color = if (selected) Color.White else FitTheme.colors.textSub,
                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
                             )
@@ -391,19 +394,23 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                 // ---- 分组四：图片 ----
                 FieldLabel("图片（最多 9 张，点击设封面）")
                 Row(Modifier.fillMaxWidth().padding(bottom = Spacing.m)) {
-                    OutlinedButton(
-                        onClick = { if (images.size < 9) pickLauncher.launch("image/*") else toast = "最多 9 张" },
-                        modifier = Modifier.weight(1f).height(Touch.button),
-                        shape = RoundedCornerShape(Radius.field),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary)
-                    ) { Text("从相册选择", fontSize = 14.sp) }
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                            .border(1.dp, FitTheme.colors.outlineStrong, RoundedCornerShape(Radius.field))
+                            .clickable { if (images.size < 9) pickLauncher.launch("image/*") else toast = "最多 9 张" },
+                        contentAlignment = Alignment.Center
+                    ) { Text("从相册选择", fontSize = 14.sp, color = Primary) }
                     Spacer(Modifier.width(Spacing.s))
-                    OutlinedButton(
-                        onClick = { if(images.size<9)permLauncher.launch(Manifest.permission.CAMERA) else toast="最多 9 张" },
-                        modifier = Modifier.weight(1f).height(Touch.button),
-                        shape = RoundedCornerShape(Radius.field),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary)
-                    ) { Text("拍照", fontSize = 14.sp) }
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                            .border(1.dp, FitTheme.colors.outlineStrong, RoundedCornerShape(Radius.field))
+                            .clickable { if(images.size<9)permLauncher.launch(Manifest.permission.CAMERA) else toast="最多 9 张" },
+                        contentAlignment = Alignment.Center
+                    ) { Text("拍照", fontSize = 14.sp, color = Primary) }
                 }
 
                 val columns = 3

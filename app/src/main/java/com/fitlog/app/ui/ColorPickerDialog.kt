@@ -8,8 +8,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -22,10 +22,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.fitlog.app.ui.theme.FitTheme
 import com.fitlog.app.ui.theme.Typography2
 import kotlin.math.roundToInt
@@ -75,37 +77,43 @@ fun ColorPickerDialog(initialHex: String, onConfirm: (String) -> Unit, onDismiss
     val currentColor = Color(argb)
     val hexText = "#%06X".format(argb and 0xFFFFFF)
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("自定义颜色", style = Typography2.cardTitle, color = FitTheme.colors.textMain) },
-        text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    // 自绘紧凑弹窗：间距可控，避免 AlertDialog 默认留白过大
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = FitTheme.colors.surface
+        ) {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                Text("自定义颜色", style = Typography2.cardTitle, color = FitTheme.colors.textMain)
+                Spacer(Modifier.height(12.dp))
                 SvPanel(hue, sat, value) { s, v -> sat = s; value = v }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
                 HueBar(hue) { hue = it }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         Modifier
-                            .size(36.dp)
+                            .size(30.dp)
                             .clip(CircleShape)
                             .background(currentColor)
                             .border(1.dp, FitTheme.colors.line, CircleShape)
                     )
-                    Spacer(Modifier.width(12.dp))
+                    Spacer(Modifier.width(10.dp))
                     Text(hexText, style = Typography2.body, color = FitTheme.colors.textMain)
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = onDismiss, contentPadding = PaddingValues(horizontal = 10.dp)) {
+                        Text("取消", color = FitTheme.colors.textSub)
+                    }
+                    TextButton(
+                        onClick = { onConfirm(hexText) },
+                        contentPadding = PaddingValues(horizontal = 10.dp)
+                    ) {
+                        Text("确定", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(hexText) }) {
-                Text("确定", color = MaterialTheme.colorScheme.primary)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("取消", color = FitTheme.colors.textSub) }
         }
-    )
+    }
 }
 
 /** 饱和度/明度面板：底色为当前色相，横向白→透明（饱和度），纵向透明→黑（明度） */
@@ -119,7 +127,7 @@ private fun SvPanel(hue: Float, sat: Float, value: Float, onChange: (Float, Floa
             (1f - pos.y / panelSize.height).coerceIn(0f, 1f)
         )
     }
-    Box(Modifier.fillMaxWidth().height(216.dp)) {
+    Box(Modifier.fillMaxWidth().height(190.dp)) {
         Box(
             Modifier
                 .fillMaxSize()

@@ -37,7 +37,7 @@ fun AppNav(){
     Scaffold(containerColor=FitTheme.colors.bg,
         topBar={if(top)TopAppBar(title={Text("服集 FitLog",fontSize=27.sp,color=FitTheme.colors.textMain)},actions={TextButton(onClick={nav.navigate("settings")}){Icon(Icons.Outlined.Tune,contentDescription=null,modifier=Modifier.size(18.dp));Spacer(Modifier.width(6.dp));Text("我的",fontSize=14.sp)}},colors=TopAppBarDefaults.topAppBarColors(containerColor=FitTheme.colors.bg))},
         bottomBar={if(top)Row(
-            Modifier.fillMaxWidth().background(FitTheme.colors.surface).navigationBarsPadding().height(64.dp),
+            Modifier.fillMaxWidth().background(FitTheme.colors.surface).navigationBarsPadding().height(58.dp),
             horizontalArrangement=Arrangement.SpaceEvenly,
             verticalAlignment=Alignment.CenterVertically
         ){
@@ -47,7 +47,7 @@ fun AppNav(){
                     Modifier
                         .clip(RoundedCornerShape(12.dp))
                         .clickable{nav.navigate(path){popUpTo("closet?palette={palette}"){saveState=true};launchSingleTop=true;restoreState=true}}
-                        .padding(horizontal=10.dp,vertical=6.dp),
+                        .padding(horizontal=10.dp,vertical=4.dp),
                     horizontalAlignment=Alignment.CenterHorizontally
                 ){
                     // 高亮胶囊直接作为图标背景，与图标严格对齐
@@ -55,9 +55,9 @@ fun AppNav(){
                         Modifier
                             .clip(RoundedCornerShape(999.dp))
                             .background(if(selected)PrimaryLight else Color.Transparent)
-                            .padding(horizontal=16.dp,vertical=4.dp)
-                    ){Icon(icon,contentDescription=null,tint=if(selected)Primary else FitTheme.colors.textSub,modifier=Modifier.size(22.dp))}
-                    Spacer(Modifier.height(2.dp))
+                            .padding(horizontal=16.dp,vertical=3.dp)
+                    ){Icon(icon,contentDescription=null,tint=if(selected)Primary else FitTheme.colors.textSub,modifier=Modifier.size(20.dp))}
+                    Spacer(Modifier.height(1.dp))
                     Text(label,fontSize=11.sp,color=if(selected)Primary else FitTheme.colors.textSub)
                 }
             }

@@ -8,13 +8,14 @@ plugins {
 android {
     namespace = "com.fitlog.app"
     compileSdk = 34
+    // 本机仅有 build-tools 36.0.0，本地构建使用；此行不提交
 
     defaultConfig {
         applicationId = "com.fitlog.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.4.6"
+        versionCode = 13
+        versionName = "0.4.7"
     }
 
     buildTypes {

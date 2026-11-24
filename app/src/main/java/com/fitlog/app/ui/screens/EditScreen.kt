@@ -185,6 +185,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                     Button(
                         onClick = onBack,
                         modifier = Modifier.weight(1f).height(Touch.button),
+                        contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = FitTheme.colors.surfaceVariant,
                             contentColor = FitTheme.colors.textSub
@@ -195,6 +196,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                         onClick = { doSave() },
                         enabled=!saving,
                         modifier = Modifier.weight(2f).height(Touch.button),
+                        contentPadding = PaddingValues(0.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Primary),
                         shape = RoundedCornerShape(Radius.field)
                     ) { Text(if(saving)"正在保存…" else "保存", fontWeight = FontWeight.SemiBold) }

@@ -1,47 +1,47 @@
-# FitLog 衣码记录
+# 服集 FitLog
 
-> 鼠尾草绿衣橱整合版的功能、安装和数据说明见 [整合版说明](docs/整合版说明.md)。
+**当前开发版本：v0.4.1（versionCode 7） · 最新源码在默认分支 main。**
 
-记录你购买衣物的尺码与三维数据，帮助下一次买到更合身的衣服。
+以一件想穿的衣服为起点，从自己的衣橱中找到搭配。原生 Android、本地存储、无需账号，采用鼠尾草绿 Sage & Ivory 界面。
 
-纯本地存储的安卓应用：**Kotlin + Jetpack Compose + Room**，无联网、无账号，所有数据（含图片）只保存在手机上。
+## 接手开发先看这里
 
-## 功能
+1. [Agent 入口](AGENTS.md)
+2. [完整交接文档](docs/FitLog-Agent-Handoff.md)
+3. [整合版功能与数据说明](docs/整合版说明.md)
+4. [可交互 HTML 源码](docs/preview/Fuji-FitLog-Preview.html)（下载文件后可直接在浏览器打开）
+5. [在线安卓交互预览](https://fuji-fitlog-preview-261124.xifeng335.chatgpt.site)
 
-| 页面 | 内容 |
-|---|---|
-| 首页 | 身高 / 体重 / 胸围 / 腰围 / 臀围 / 肩宽，每次保存生成历史快照；最近衣物快捷入口（显示实拍封面图） |
-| 衣物列表 | 关键字搜索、按类型筛选（上衣 / 背心 / 裤子 / 高弹短裤 / 外套 / 内裤 / 帽子），卡片直接显示关键三维数据 |
-| 新增 / 编辑 | 选类型自动带出默认属性；支持任意自定义属性；相册选图或拍照（最多 9 张，可设封面）；合身评价三档：紧身 / 合身 / 宽松 |
-| 详情 | 大图浏览、属性表、备注、删除、复制为新记录 |
-| 设置 | 备份导出为 zip（含图片）、导入恢复、按类型管理属性模板、崩溃日志导出 |
+原 V0.3 文档和标签是历史资料，不能据此判断最新功能。若 Workbuddy 仍显示 V0.3，先检查其本地 checkout、分支、标签或缓存。不要覆盖未提交工作。
 
-## 默认属性模板
+## 当前功能
 
-- 上衣 / 背心 / 外套：衣长、胸围、肩宽
-- 裤子 / 高弹短裤：裤长、腰围、臀围
-- 内裤：腰围、臀围
-- 帽子：头围、帽檐长
+- 统一衣物资料：尺码、自定义属性、照片、主色、图案、版型与合身评价。
+- 衣橱搜索、分类与收藏；照片和尺寸可逐步补充。
+- 从选定单品出发搭配，替换/添加衣物，保存、修改或另存整套搭配。
+- 配色灵感和离线规则建议；不是在线 AI 识图，也不作合身保证。
+- 身体数据历史、属性模板、尺码对照、ZIP 备份导入/导出。
+- 不包含每日穿搭日记，搭配不绑定日期。
 
-均可按需添加自定义属性，并可在设置中维护模板。
+## 预览与安装
 
-## 构建
+[下载服集 FitLog 预览版 v0.4.1](https://chatgpt.com/library?file_id=libfile_831ccd2aa2808191b0229705b82c41de&account_id=personal)（需要用户的 ChatGPT 文件访问权限；不是 GitHub Release）。
 
-要求：JDK 17、Android SDK（Platform 34 / Build-Tools 34.0.0）。
+预览包为 `com.fitlog.app.preview`，与原版 `com.fitlog.app` 独立共存。v0.4.1 预览 APK 与此前 v0.4.0 预览 APK 的签名一致。不要卸载旧应用来迁移数据；旧数据通过备份导入，导入采用追加方式。
+
+网页是独立的 UI 交互模拟，使用示例数据并保存在浏览器；不会读取手机数据，原生备份相关操作并未在网页实现。修改 Android 时需要同步维护网页，GitHub 更新不会自动部署在线站点。
+
+## 构建与验证
+
+JDK 17、Android SDK Platform 34、Build Tools 34.0.0，支持 Android 8.0+（API 26）。
 
 ```bash
-export ANDROID_HOME=/path/to/android-sdk
-./gradle assembleDebug   # 或用 Android Studio 直接打开工程
+./gradlew :app:testDebugUnitTest
+./gradlew :app:assemblePreview
 ```
 
-产物：`app/build/outputs/apk/debug/app-debug.apk`（Android 8.0+ 可安装）。
+预览 APK 输出到 `app/build/outputs/apk/preview/`。开发前配置本机 SDK 路径，勿提交 local.properties 或签名密钥。最近 v0.4.1 的测试与构建通过；尚未在用户真机验证覆盖安装和数据迁移。
 
-## 设计规范
+## 后续维护
 
-UI 遵循 8pt 间距网格、Material 3 动效 Token（Spring 曲线，时长档位 200/300/400ms）、克制两级阴影、44dp 最小触控区、WCAG AA 对比度与完整深色模式；品牌主色 `#3B6FE0`。
-
-## 文档
-
-- [产品需求文档（PRD）](docs/衣码记录App-产品需求文档PRD.md)
-- [UI 设计展示](docs/衣码记录App-UI设计展示.html)（浏览器打开）
-- [使用说明](docs/README-使用说明.md)
+完成阶段性工作后，同步更新本 README 的版本、本项目交接文档及预览；记录实际提交和验证结果。签名、数据库和图片迁移需要实机验证。旧的 PRD 与蓝色 UI 展示位于 docs，仅供历史参考。

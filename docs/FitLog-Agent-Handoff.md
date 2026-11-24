@@ -1,12 +1,14 @@
-# FitLog 项目交接文档
+# 服集 FitLog 项目交接文档
 
 > 状态快照：2026-11-24（北京时间）。这是可持续更新的交接入口，不保证此日期之后仍与实际仓库、手机或安装包一致。接手时先核对现状，再执行操作。
 >
-> **当前最重要的变化：用户已确认旧版无法备份的问题解决。** 具体解决方式、最终安装版本、实际备份文件及是否导入新预览版尚未在本会话核实；不要重复修复，也不要假定数据迁移已完成。
+> **当前入口：默认分支 `main`，产品版本 v0.4.1（versionCode 7），名称「服集 FitLog」。旧版 V0.3 是历史基线。**
+>
+> 用户已确认旧版无法备份的问题解决。 具体解决方式、最终安装版本、实际备份文件及是否导入新预览版尚未在本会话核实；不要重复修复，也不要假定数据迁移已完成。
 
 ## 仓库中的交接材料与预览
 
-- 本文件位于整合版分支 `docs/FitLog-Agent-Handoff.md`；以当前仓库中的最新版本为准，GitHub 草稿 PR 未合并前，默认分支看不到本次新增文件。
+- 本文件位于默认分支 `main` 的 `docs/FitLog-Agent-Handoff.md`；先读根目录 `AGENTS.md` 与 `README.md`。
 - 安卓交互预览的单文件源码位于 `docs/preview/Fuji-FitLog-Preview.html`；可下载到电脑后用浏览器打开。无需 npm 或构建。在线预览：[服集 FitLog 安卓交互预览](https://fuji-fitlog-preview-261124.xifeng335.chatgpt.site)。
 - 此网页是根据 Android 代码重新实现的界面模拟，属于独立源码，**不会随 Android 代码自动同步**。修改 Android UI 时须同步修改此 HTML，并单独更新在线预览站点；仅向 GitHub 推送 HTML 不会自动更新在线站点。
 - 网页默认使用示例数据，改动保存于当前浏览器，与手机 App 数据独立；备份恢复等按钮仅演示，不执行 Android 原生备份。上传到 GitHub 的 HTML 不包含用户衣物或照片。
@@ -15,7 +17,7 @@
 ## 1. 给新 Agent 的 3 分钟接手指引
 
 1. 查看本文件的「当前状态」「未完成事项」及最后的交接更新区；核对时间，先执行 `git status`、检查分支与 PR 是否变更。
-2. 仓库：[frozamina/fitlog](https://github.com/frozamina/fitlog)。整合版代码在 [草稿 PR #1](https://github.com/frozamina/fitlog/pull/1) 中；不要仅看 `main` 就判断整个项目的状态。
+2. 仓库：[frozamina/fitlog](https://github.com/frozamina/fitlog)。当前整合版代码统一进入默认分支 `main`；[PR #1](https://github.com/frozamina/fitlog/pull/1) 保留为历史变更记录。
 3. 按用户的**最新消息**确定任务。旧版备份问题用户已说解决；如果新工作涉及迁移，先了解目前实际安装版本和已有备份，再制定无损验证方式。
 4. 阅读第 2–5 节理解产品方向和数据边界，阅读第 6–8 节定位代码、测试和遗留工作。
 5. 每次结束一个阶段，更新本文末尾的「交接更新记录」和受影响的状态表，并注明日期、分支、提交、测试结果、未完成事项与下一步；如文件另有共享副本，也保持一致。
@@ -48,22 +50,24 @@
 
 ## 4. 仓库、版本和交付物快照
 
-| 对象 | 已核实状态（2026-11-24） | 接手提示 |
+| 对象 | 当前状态 | 接手提示 |
 |---|---|---|
-| GitHub 仓库 | https://github.com/frozamina/fitlog | 后续操作前重新检查远端。 |
-| `main` | 快照为 `b834c47535d94fe6f7ccd75f6f211ab4f9f036ff`，标签 `v0.3.2`。 | 原旧版基线，不代表当前用户手机安装的一定与其完全一致。 |
-| 整合版 PR | [PR #1](https://github.com/frozamina/fitlog/pull/1)，open、draft、未合并；远端分支 `codex/sage-wardrobe-integration`，快照 head `4ef2b8f3424c361f75ee0e45b836b61b74c01665`。 | 继续前核实 PR 是否变更；不要把它当作已发布正式版。 |
-| 本次环境整合版 | 本地 `feat/sage-wardrobe-integration` 为 `0948b9d168b8f4f2939da371bd3538347e5e2584`，tree 为 `f9487e37c57a346e5f6fdd80b83c234c53fbea6a`。 | 本地有名称和图标的未提交修改，远端 PR 已包含相应提交；本地临时工作目录可能失效，以远端为主。 |
-| 最新服集预览 APK | [Fuji-FitLog-Preview-v0.4.1.apk](https://chatgpt.com/library?file_id=libfile_831ccd2aa2808191b0229705b82c41de&account_id=personal) | `com.fitlog.app.preview`、versionCode 7，与此前 v0.4.0 预览包证书一致；尚未真机验证。 |
-| 鼠尾草绿预览 APK | [FitLog-Sage-Preview-v0.4.0.apk](https://chatgpt.com/library?file_id=libfile_2c40ce735aa48191b03350f8629227af&account_id=personal) | 构建配置 applicationId 为 `com.fitlog.app.preview`，与旧版独立并存，不能直接访问旧版私有数据；用户实际安装状态待核实。 |
-| 旧备份问题 | 用户最新消息：**已经解决**。 | 修复方式、手机版本和迁移结果未核实；不应视为仍在报错。 |
-| 旧版备份补丁 | [FitLog-legacy-backup-fix.zip](https://chatgpt.com/library?file_id=libfile_bd73a268c7ac819181eeb79ddad9d5a2&account_id=personal)。 | 为此前基于 `main` 的候选方案，含补丁及 README；不知用户实际解决方式，也不知是否采用此补丁。不要直接重复应用或覆盖现有修复。 |
+| 最新源码 | 默认分支 `main`，Android v0.4.1、versionCode 7，名称「服集 FitLog」。 | 从 main 获取最新，执行 git rev-parse HEAD 记录实际提交。 |
+| 旧版 | 标签 `v0.3.2`，历史基线 `b834c47535d94fe6f7ccd75f6f211ab4f9f036ff`。 | 不要拿旧标签或 Workbuddy 的旧 checkout 当当前版本；用户实际旧包来源与签名未核实。 |
+| 交接入口 | 根目录 `AGENTS.md`，本文件 `docs/FitLog-Agent-Handoff.md`。 | 以仓库最新文档为准。 |
+| 网页预览源码 | `docs/preview/Fuji-FitLog-Preview.html` | 单文件，用浏览器打开；是交互模拟，需与 Android 分别维护。 |
+| 在线预览 | https://fuji-fitlog-preview-261124.xifeng335.chatgpt.site | 修改 GitHub 不自动更新该站点；此预览不访问 Android 的真实数据。 |
+| 最新预览 APK | [服集 FitLog v0.4.1](https://chatgpt.com/library?file_id=libfile_831ccd2aa2808191b0229705b82c41de&account_id=personal) | `com.fitlog.app.preview`，与此前 v0.4.0 预览 APK 证书一致；尚未真机验证。下载链接需要用户的 ChatGPT 访问权限，不是 GitHub Release 资产。 |
+| 旧备份问题 | 用户已确认解决。 | 实际方案及是否完成旧版→预览版迁移未知，不要再次默认修复。 |
+| 历史候选补丁 | [FitLog-legacy-backup-fix.zip](https://chatgpt.com/library?file_id=libfile_bd73a268c7ac819181eeb79ddad9d5a2&account_id=personal) | 针对旧基线的历史候选补丁，不知用户是否采用；不要向最新 main 重复应用。 |
 
-**来源优先级**：用户最新指令和可验证的当前仓库/设备状态 > 本快照；历史文档与旧 PR 描述可能过时。签名文件、密码、密钥不应写入交接文档或提交到仓库。
+**版本获取**：Workbuddy 若仍只看到 V0.3，应检查是否读取了旧 checkout、旧标签或缓存。先保护本地修改，再 fetch origin 并比较 origin/main；不要执行硬重置。没有本地修改时可切换 main 后 fast-forward 更新，复杂分叉应先审查差异。
+
+**来源优先级**：用户最新要求及当前可验证仓库/设备状态 > 本文快照。不要提交签名密钥、密码或用户真实衣物数据。
 
 ## 5. 目前实现与数据边界
 
-### 整合版已实现（以草稿 PR 代码和此前自动测试为依据）
+### 整合版已实现（当前源码及此前自动测试）
 
 - 统一衣物资料，纳入尺码、照片、颜色、图案、版型等；尺寸与照片可后补。
 - 主导航为衣橱、搭配、灵感；从选定单品发起搭配、查看建议、替换/添加其他衣物、命名保存、编辑或另存。
@@ -103,12 +107,13 @@
 git clone https://github.com/frozamina/fitlog.git
 cd fitlog
 git fetch origin
-git checkout -b work/sage-integration origin/codex/sage-wardrobe-integration
+git checkout main
+git pull --ff-only origin main
 ./gradlew :app:testDebugUnitTest
 ./gradlew :app:assemblePreview
 ```
 
-仅在本机具有 Android SDK、JDK 及依赖可用时执行。PR 分支可能被删除或更新，先检查远端。输出通常在 `app/build/outputs/apk/preview/`；确认实际路径。若工程或构建脚本发生变化，以当前仓库为准。不要把交接文件写死的临时工具目录当作长期环境。
+仅在本机具有 Android SDK、JDK 及依赖可用时执行。以默认 main 为当前入口，先检查远端和本地未提交修改。输出通常在 `app/build/outputs/apk/preview/`；确认实际路径。若工程或构建脚本发生变化，以当前仓库为准。不要把交接文件写死的临时工具目录当作长期环境。
 
 ## 8. 测试、风险与下一步
 
@@ -141,6 +146,8 @@ git checkout -b work/sage-integration origin/codex/sage-wardrobe-integration
 
 ### 交接更新记录
 
+以下条目按时间记录历史状态；早期“草稿 PR 未合并”的表述不代表现在的分支状态。当前入口以第 4 节和根目录 README 为准。
+
 #### 2026-11-24：整合预览与备份问题状态
 
 - 用户确认以 FitLog 为基础整合衣橱及搭配，偏好鼠尾草绿 UI；最常见场景是先选定一件衣服再找搭配，暂不需要每日穿搭记录。
@@ -161,3 +168,11 @@ git checkout -b work/sage-integration origin/codex/sage-wardrobe-integration
 - 用户要求把交接文档和可交互 HTML 加入 GitHub；材料写入整合版草稿 PR 的 `docs/FitLog-Agent-Handoff.md` 与 `docs/preview/Fuji-FitLog-Preview.html`，`main` 尚未合并。
 - 页面根据 v0.4.1 的衣橱、搭配和灵感界面制作，包含选单品搭配、替换和保存等交互；此前已在浏览器检查主流程。它不是运行中的原生 Android 应用，也不自动与 Android 改动或手机数据同步。
 - 发布的独立预览站点可供用户直接访问；此仓库中的 HTML 可在本地单文件打开并供下一任 Agent 继续维护。
+
+
+#### 2026-11-24：修正默认分支交接入口
+
+- 用户反馈 Workbuddy 只能看到 V0.3；原因是此前最新代码只保存在整合版草稿分支，默认 main 没有更新。
+- 按用户要求，将整合版 v0.4.1、鼠尾草绿衣架 F 图标、交接文档和交互预览统一进入 main；补充根目录 AGENTS.md，重写 README 为当前功能和版本入口。
+- 后续 Agent 应从 main 获取源码，并在交付时核对默认分支；不能仅声称已上传到其他分支就认为交接完成。
+- 编译、测试与 APK 证书验证结果沿用最近 v0.4.1 验证；此轮仅修正文档入口及分支可见性，不改变应用逻辑，不新增真机验证结论。

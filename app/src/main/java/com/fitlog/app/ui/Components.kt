@@ -237,7 +237,7 @@ fun FitTextField(
     val colors = FitTheme.colors
     Surface(
         modifier = modifier
-            .heightIn(min = 40.dp)
+            .heightIn(min = 36.dp)
             .then(if (height != null) Modifier.height(height) else Modifier),
         shape = RoundedCornerShape(Radius.field),
         color = colors.surface,
@@ -253,7 +253,7 @@ fun FitTextField(
                 singleLine = singleLine,
                 textStyle = LocalTextStyle.current.copy(fontSize = 14.sp, color = colors.textMain),
                 cursorBrush = SolidColor(Primary),
-                modifier = Modifier.weight(1f).padding(vertical = 10.dp),
+                modifier = Modifier.weight(1f).padding(vertical = 8.dp),
                 decorationBox = { inner ->
                     Box {
                         if (value.isEmpty() && placeholder.isNotEmpty()) {

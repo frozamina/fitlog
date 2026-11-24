@@ -167,7 +167,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
             containerColor = FitTheme.colors.bg,
             topBar = {
                 TopAppBar(
-                    title = { Text(if (garmentId > 0) "编辑衣物" else "新增衣物", style = Typography2.pageTitle) },
+                    title = { Text(if (garmentId > 0) "编辑衣物" else "新增衣物", fontSize = 18.sp, fontWeight = FontWeight.SemiBold) },
                     navigationIcon = {
                         TextButton(onClick = onBack) { Text("‹ 返回", fontSize = 14.sp) }
                     },
@@ -258,13 +258,15 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                         )
                     }
                 }
-                // 拖拽自定义选色（仿美图秀秀/醒图）——先 padding 再定高，避免按钮内容被裁
-                OutlinedButton(
-                    onClick = { showColorPicker = true },
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp).height(40.dp),
-                    shape = RoundedCornerShape(Radius.field),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary)
-                ) { Text("🎨 自定义颜色（拖动选色）", fontSize = 14.sp) }
+                // 拖拽自定义选色（仿美图秀秀/醒图）——自绘居中布局，彻底避免系统按钮内边距裁字
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .border(1.dp, FitTheme.colors.outlineStrong, RoundedCornerShape(Radius.field))
+                        .clickable { showColorPicker = true },
+                    contentAlignment = Alignment.Center
+                ) { Text("🎨 自定义颜色（拖动选色）", fontSize = 14.sp, color = Primary) }
                 FieldLabel("图案")
                 FlowRow { listOf("未标注","纯色","条纹","格纹","印花").forEach { value -> TypeChip(value,pattern==value){pattern=value} } }
                 FieldLabel("衣服本身的版型")

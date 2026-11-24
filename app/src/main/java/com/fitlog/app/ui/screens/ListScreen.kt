@@ -1,164 +1,39 @@
 package com.fitlog.app.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import com.fitlog.app.data.FitRating
-import com.fitlog.app.data.Garment
-import com.fitlog.app.data.GarmentType
-import com.fitlog.app.ui.CardBox
-import com.fitlog.app.ui.EmptyState
-import com.fitlog.app.ui.FitTag
-import com.fitlog.app.ui.FitTextField
-import com.fitlog.app.ui.GarmentCardSkeleton
-import com.fitlog.app.ui.TypeChip
-import com.fitlog.app.ui.formatDate
-import com.fitlog.app.ui.typeIcon
-import com.fitlog.app.ui.typePlaceholderColor
+import com.fitlog.app.data.*
+import com.fitlog.app.ui.*
 import com.fitlog.app.ui.theme.*
 import com.fitlog.app.vm.AppViewModel
-import java.io.File
 
+@OptIn(ExperimentalLayoutApi::class,ExperimentalMaterial3Api::class)
 @Composable
-fun ListScreen(vm: AppViewModel, onOpen: (Long) -> Unit) {
-    val all by vm.garments.collectAsState()
-    var query by remember { mutableStateOf("") }
-    var type by remember { mutableStateOf("全部") }
-
-    // 数据到位前的骨架屏（Loading 态）
-    var ready by remember { mutableStateOf(false) }
-    LaunchedEffect(all) { if (all.isNotEmpty()) ready = true }
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(700)
-        ready = true
-    }
-
-    val list = all.filter {
-        (type == "全部" || it.type == type) &&
-            (query.isBlank() || it.name.contains(query, true) || it.brand.contains(query, true))
-    }
-
-    Column(Modifier.fillMaxSize()) {
-        // 搜索框（Focus 态清晰，圆角统一）
-        Box(Modifier.padding(horizontal = Spacing.base, vertical = Spacing.s)) {
-            FitTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = "搜索名称 / 品牌…"
-            )
-        }
-
-        // 类型筛选：FlowRow 自动换行
-        @OptIn(ExperimentalLayoutApi::class)
-        FlowRow(
-            Modifier
-                .padding(horizontal = Spacing.base, vertical = Spacing.xs)
-                .fillMaxWidth()
-        ) {
-            TypeChip("全部 ${all.size}", type == "全部") { type = "全部" }
-            GarmentType.entries.forEach { t ->
-                val n = all.count { it.type == t.label }
-                TypeChip("${t.label} $n", type == t.label) { type = t.label }
-            }
-        }
-
-        when {
-            !ready -> {
-                Column(
-                    Modifier.padding(horizontal = Spacing.base),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.m)
-                ) {
-                    repeat(4) { GarmentCardSkeleton() }
-                }
-            }
-
-            list.isEmpty() -> {
-                EmptyState(
-                    icon = if (all.isEmpty()) "👔" else "🔍",
-                    title = if (all.isEmpty()) "衣柜还是空的" else "没有匹配的衣物",
-                    sub = if (all.isEmpty()) "点右下角 ＋ 添加第一件" else "换个类型或关键字试试"
-                )
-            }
-
-            else -> {
-                LazyColumn(
-                    contentPadding = PaddingValues(horizontal = Spacing.base, vertical = Spacing.xs),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.m)
-                ) {
-                    items(list, key = { it.id }) { g ->
-                        GarmentCard(vm, g) { onOpen(g.id) }
-                    }
-                    item { Spacer(Modifier.height(90.dp)) }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun GarmentCard(vm: AppViewModel, g: Garment, onClick: () -> Unit) {
-    val images by vm.imagesFlow(g.id).collectAsState(initial = emptyList())
-    val attrs by vm.attrsFlow(g.id).collectAsState(initial = emptyList())
-    val cover = images.firstOrNull()
-
-    CardBox(onClick = onClick) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (cover != null && File(cover.path).exists()) {
-                AsyncImage(
-                    model = File(cover.path),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(Radius.field))
-                )
-            } else {
-                Box(
-                    Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(Radius.field))
-                        .background(typePlaceholderColor(g.type)),
-                    contentAlignment = Alignment.Center
-                ) { Text(typeIcon(g.type), fontSize = 26.sp) }
-            }
-            Spacer(Modifier.width(Spacing.m))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    g.name, style = Typography2.cardTitle,
-                    color = FitTheme.colors.textMain, maxLines = 1
-                )
-                Spacer(Modifier.height(Spacing.xs))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        "${g.type} · ${g.sizeLabel.ifBlank { "未填标码" }} · ${formatDate(g.createdAt)}",
-                        style = Typography2.caption, color = FitTheme.colors.textSub
-                    )
-                    Spacer(Modifier.width(Spacing.s))
-                    FitTag(FitRating.from(g.fit))
-                }
-                if (attrs.isNotEmpty()) {
-                    Spacer(Modifier.height(Spacing.xs))
-                    Text(
-                        attrs.take(4).joinToString(" · ") { "${it.name}${it.value}${it.unit}" },
-                        style = Typography2.caption, color = FitTheme.colors.textSub, maxLines = 1
-                    )
-                }
-            }
-            Text("›", fontSize = 18.sp, color = FitTheme.colors.outline)
-        }
+fun ListScreen(vm:AppViewModel,onOpen:(Long)->Unit,onAdd:()->Unit={},onStyle:(Long)->Unit={},paletteId:String=""){
+    val garments by vm.garments.collectAsState();val images by vm.imageLibrary.collectAsState()
+    var query by remember { mutableStateOf("") };var category by remember { mutableStateOf("全部") };var favorite by remember { mutableStateOf(false) };var palette by remember(paletteId){mutableStateOf(paletteId)}
+    val group=StudioPalettes.all.find { it.id==palette }
+    val shown=garments.filter { g -> (category=="全部"||g.type==category)&&(!favorite||g.favorite)&&(query.isBlank()||(g.name+" "+g.brand).contains(query,true))&&(group==null||Styling.matchesPalette(g.mainColor,group.colors)) }
+    LazyVerticalGrid(columns=GridCells.Adaptive(156.dp),modifier=Modifier.fillMaxSize(),contentPadding=PaddingValues(start=20.dp,end=20.dp,bottom=32.dp),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalArrangement=Arrangement.spacedBy(26.dp)){
+        item(span={GridItemSpan(maxLineSpan)}){StageReveal(0){Column{
+            StudioHeading("MY WARDROBE","我的衣橱","先选一件想穿的，再找到它的搭配。")
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){Text("${garments.size} 件衣物",style=Typography2.caption,color=FitTheme.colors.textSub);Button(onClick=onAdd){Icon(Icons.Outlined.Add,contentDescription=null);Text("录入衣物")}}
+        }}}
+        item(span={GridItemSpan(maxLineSpan)}){StageReveal(1){Column{
+            OutlinedTextField(query,{query=it},placeholder={Text("搜索名称、品牌")},leadingIcon={Icon(Icons.Outlined.Search,contentDescription=null)},singleLine=true,modifier=Modifier.fillMaxWidth())
+            Spacer(Modifier.height(12.dp));FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){(listOf("全部")+garments.map { it.type }.distinct()).forEach { t -> FilterChip(colors=FilterChipDefaults.filterChipColors(selectedContainerColor=if(FitTheme.colors.isDark) FitTheme.colors.surfaceVariant else PrimaryLight, selectedLabelColor=if(FitTheme.colors.isDark) FitTheme.colors.textMain else PrimaryDark),selected=t==category,onClick={category=t},label={Text(t)},modifier=Modifier.heightIn(min=44.dp)) }}
+            Row(verticalAlignment=Alignment.CenterVertically){Checkbox(favorite,{favorite=it});Text("只看收藏",style=Typography2.caption,color=FitTheme.colors.textSub)}
+            if(group!=null)StudioNote("灵感色组：${group.name}。只显示主色相近的衣物。")
+            if(group!=null)TextButton(onClick={palette=""}){Text("清除色组筛选")}
+        }}}
+        if(shown.isEmpty())item(span={GridItemSpan(maxLineSpan)}){Column(Modifier.fillMaxWidth().padding(vertical=32.dp),horizontalAlignment=Alignment.CenterHorizontally){Text(if(garments.isEmpty())"从想穿的那件开始" else "没有找到匹配衣物",style=Typography2.sectionTitle);Spacer(Modifier.height(12.dp));Text(if(garments.isEmpty())"照片、名称和类别先记下来，尺码之后再补。" else "可以调整搜索、分类或收藏条件。",style=Typography2.body,color=FitTheme.colors.textSub);Spacer(Modifier.height(20.dp));if(garments.isEmpty())Button(onClick=onAdd){Text("录入第一件衣物")}}}
+        items(shown,key={it.id}){g->StageReveal(2){GarmentTile(g,images.firstOrNull { it.garmentId==g.id&&it.isCover }?.path?:images.firstOrNull { it.garmentId==g.id }?.path,onOpen={onOpen(g.id)},onStyle=if(Styling.slot(g.type)!=Styling.Slot.NONE){{onStyle(g.id)}}else null)}}
     }
 }

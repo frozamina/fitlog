@@ -66,6 +66,9 @@ interface GarmentAttrDao {
 
 @Dao
 interface GarmentImageDao {
+    @Query("SELECT COUNT(*) FROM garment_image WHERE path = :path")
+    suspend fun references(path: String): Int
+
     @Query("SELECT * FROM garment_image WHERE garmentId = :garmentId ORDER BY isCover DESC, sortOrder, id")
     fun observeByGarment(garmentId: Long): Flow<List<GarmentImage>>
 
@@ -113,4 +116,21 @@ interface AttrTemplateDao {
 
     @Query("DELETE FROM attr_template")
     suspend fun clear()
+}
+
+@Dao
+interface OutfitDao {
+    @Query("SELECT * FROM outfit_piece WHERE outfitId = :id ORDER BY sortOrder")
+    suspend fun pieces(id:Long):List<OutfitPiece>
+    @Query("SELECT * FROM outfit ORDER BY updatedAt DESC, id DESC")
+    fun observeAll(): Flow<List<Outfit>>
+    @Query("SELECT * FROM outfit_piece ORDER BY outfitId, sortOrder")
+    fun observePieces(): Flow<List<OutfitPiece>>
+    @Query("SELECT * FROM outfit WHERE id = :id")
+    suspend fun get(id: Long): Outfit?
+    @Insert suspend fun insert(outfit: Outfit): Long
+    @Update suspend fun update(outfit: Outfit)
+    @Query("DELETE FROM outfit_piece WHERE outfitId = :id") suspend fun clearPieces(id: Long)
+    @Insert suspend fun insertPieces(pieces: List<OutfitPiece>)
+    @Query("UPDATE outfit SET anchorId = NULL WHERE anchorId = :id") suspend fun clearAnchor(id: Long)
 }

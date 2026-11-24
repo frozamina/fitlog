@@ -33,7 +33,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(vm: AppViewModel) {
+fun SettingsScreen(vm: AppViewModel, onBody: () -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val templates by vm.allTemplates.collectAsState()
@@ -49,8 +49,7 @@ fun SettingsScreen(vm: AppViewModel) {
             val data = BackupManager.import(context, uri)
             if (data == null) toast = "导入失败：文件格式不正确"
             else {
-                vm.restore(data)
-                toast = "导入成功：${data.garments.size} 件衣物"
+                runCatching { vm.restore(data) }.onSuccess { toast = "已追加导入 ${data.garments.size} 件衣物、${data.outfits.size} 套搭配" }.onFailure { toast = it.message ?: "恢复失败，原有记录未变更" }
             }
         }
     }
@@ -63,21 +62,22 @@ fun SettingsScreen(vm: AppViewModel) {
                 .padding(horizontal = Spacing.base)
         ) {
             Spacer(Modifier.height(Spacing.s))
+            SectionTitle("我的")
+            CardBox { RowItem("", "身体与尺码", "按需更新身体数据，查看历史快照", onBody) }
             SectionTitle("数据管理")
             CardBox {
-                RowItem("📤", "导出备份", "JSON + 图片，可分享保存") {
+                RowItem("", "导出备份", "JSON + 图片，可分享保存") {
                     scope.launch {
                         toast = "正在打包…"
-                        val file = BackupManager.export(context, vm.dump())
-                        BackupManager.share(context, file)
+                        runCatching { BackupManager.export(context, vm.dump()) }.onSuccess { BackupManager.share(context,it) }.onFailure { toast=it.message?:"打包失败" }
                     }
                 }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
-                RowItem("📥", "导入恢复", "选择此前导出的 zip") { importLauncher.launch("application/zip") }
+                RowItem("", "导入恢复", "兼容旧备份；追加导入，不覆盖现有记录") { importLauncher.launch("application/zip") }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
-                RowItem("🔒", "隐私说明", "所有数据仅存本机，不上传") { }
+                RowItem("", "隐私说明", "所有数据仅存本机，不上传") { }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
-                RowItem("📮", "错误日志", if (hasCrashLog) "点此分享给开发者排查" else "暂无崩溃记录") {
+                RowItem("", "错误日志", if (hasCrashLog) "点此分享给开发者排查" else "暂无崩溃记录") {
                     val f = java.io.File(context.filesDir, "crash_log.txt")
                     if (f.exists()) {
                         BackupManager.shareFile(context, f, "text/plain")
@@ -132,11 +132,11 @@ fun SettingsScreen(vm: AppViewModel) {
 
             SectionTitle("其他")
             CardBox {
-                RowItem("ℹ️", "关于 FitLog", "v0.3.0") { }
+                RowItem("", "关于 服集 FitLog", "v0.4.1 · 鼠尾草绿") { }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
-                RowItem("🛠", "技术栈", "Kotlin · Compose · Room") { }
+                RowItem("", "技术栈", "Kotlin · Compose · Room") { }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
-                RowItem("🎨", "设计系统", "8pt 网格 · M3 动效") { }
+                RowItem("", "设计系统", "Sage & Ivory · 精细排版") { }
             }
             Spacer(Modifier.height(90.dp))
         }
@@ -190,8 +190,7 @@ private fun RowItem(icon: String, title: String, sub: String, onClick: () -> Uni
             .padding(vertical = Spacing.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(icon, fontSize = 16.sp)
-        Spacer(Modifier.width(Spacing.m))
+        if(icon.isNotBlank()) { Text(icon, fontSize = 16.sp);Spacer(Modifier.width(Spacing.m)) }
         Column(Modifier.weight(1f)) {
             Text(title, style = Typography2.cardTitle, color = FitTheme.colors.textMain)
             Spacer(Modifier.height(2.dp))

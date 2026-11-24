@@ -1,211 +1,52 @@
 package com.fitlog.app.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import com.fitlog.app.data.FitRating
-import com.fitlog.app.ui.CardBox
-import com.fitlog.app.ui.FitTag
+import com.fitlog.app.data.*
+import com.fitlog.app.ui.*
 import com.fitlog.app.ui.theme.*
 import com.fitlog.app.vm.AppViewModel
-import java.io.File
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DetailScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit, onEdit: (Long) -> Unit) {
-    var garment by remember { mutableStateOf<com.fitlog.app.data.Garment?>(null) }
-    val attrs by vm.attrsFlow(garmentId).collectAsState(initial = emptyList())
-    val images by vm.imagesFlow(garmentId).collectAsState(initial = emptyList())
-    var showDelete by remember { mutableStateOf(false) }
-    var cover by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(garmentId) {
-        garment = vm.garment(garmentId)
-    }
-    LaunchedEffect(images) { if (cover == null) cover = images.firstOrNull()?.path }
-
-    if (garment == null) {
-        Box(Modifier.fillMaxSize().background(FitTheme.colors.bg), contentAlignment = Alignment.Center) {
-            Text("加载中…", style = Typography2.body, color = FitTheme.colors.textSub)
-        }
-        return
-    }
-    val g = garment!!
-
-    Scaffold(
-        containerColor = FitTheme.colors.bg,
-        topBar = {
-            TopAppBar(
-                title = { Text("衣物详情", style = Typography2.pageTitle) },
-                navigationIcon = { TextButton(onClick = onBack) { Text("‹ 返回", fontSize = 14.sp) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = FitTheme.colors.surface)
-            )
-        }
-    ) { pad ->
-        Column(
-            Modifier
-                .padding(pad)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            // 大图区
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(260.dp)
-                    .background(typePlaceholderColorLocal(g.type)),
-                contentAlignment = Alignment.Center
-            ) {
-                val c = cover
-                if (c != null && File(c).exists()) {
-                    AsyncImage(model = File(c), contentDescription = null, modifier = Modifier.fillMaxSize())
-                } else {
-                    Text(com.fitlog.app.ui.typeIcon(g.type), fontSize = 64.sp)
+fun DetailScreen(vm:AppViewModel,garmentId:Long,onBack:()->Unit,onEdit:(Long)->Unit,onStyle:(Long)->Unit={},onCompare:(Long)->Unit={}){
+    val garments by vm.garments.collectAsState();val g=garments.find { it.id==garmentId }
+    val attrs by vm.attrsFlow(garmentId).collectAsState(initial=emptyList());val images by vm.imagesFlow(garmentId).collectAsState(initial=emptyList())
+    val outfits by vm.outfits.collectAsState();val links by vm.outfitPieces.collectAsState();val allImages by vm.imageLibrary.collectAsState()
+    var cover by remember { mutableStateOf<String?>(null) };var expanded by remember { mutableStateOf(false) };var showDelete by remember { mutableStateOf(false) }
+    StudioSubPage("衣物详情",onBack){
+        if(g==null){Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center){Text("正在查找衣物…",style=Typography2.body)};return@StudioSubPage}
+        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=20.dp)){
+            StageReveal(0){GarmentPhoto(g,cover?:images.firstOrNull { it.isCover }?.path?:images.firstOrNull()?.path,Modifier.fillMaxWidth().heightIn(max=420.dp).aspectRatio(1f))}
+            if(images.size>1)Row(Modifier.padding(vertical=8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){images.take(9).forEach { image->Box(Modifier.size(48.dp).clickable{cover=image.path}){GarmentPhoto(g,image.path,Modifier.fillMaxSize())}}}
+            StageReveal(1){Column{
+                StudioHeading(g.brand.ifBlank { "YOUR PIECE" },g.name,"${g.type} · 标码 ${g.sizeLabel.ifBlank { "未记录" }}")
+                if(Styling.slot(g.type)!=Styling.Slot.NONE)Button(onClick={onStyle(g.id)},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text("用这件搭配")}
+                Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){TextButton(onClick={vm.favorite(g.id)}){Icon(if(g.favorite)Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,contentDescription=null);Spacer(Modifier.width(6.dp));Text(if(g.favorite)"已收藏" else "收藏")};TextButton(onClick={onEdit(g.id)}){Text("编辑单品")}}
+            }}
+            StageReveal(2){Column{
+                CardBox{Text("颜色与版型",style=Typography2.sectionTitle);Spacer(Modifier.height(12.dp));Text("主色 ${g.mainColor.ifBlank { "未标注" }} · ${g.pattern}",style=Typography2.body,color=FitTheme.colors.textSub);Text("版型：${g.silhouette}　实穿：${g.fit}",style=Typography2.body,color=FitTheme.colors.textSub)}
+                Spacer(Modifier.height(20.dp))
+                CardBox{
+                    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Text("尺码档案",style=Typography2.sectionTitle,modifier=Modifier.weight(1f));TextButton(onClick={onCompare(g.id)}){Text("对比尺码")}}
+                    if(attrs.isEmpty())Text("尺寸尚未填写，之后可以补充。",style=Typography2.body,color=FitTheme.colors.textSub)
+                    (if(expanded)attrs else attrs.take(3)).forEach { a->Row(Modifier.fillMaxWidth().padding(vertical=10.dp),horizontalArrangement=Arrangement.SpaceBetween){Column(Modifier.weight(1f)){Text(a.name,style=Typography2.body);Text(a.basis.ifBlank { "测量口径未标注" },style=Typography2.caption,color=FitTheme.colors.textSub)};Text("${a.value} ${a.unit}",style=Typography2.body)} }
+                    if(attrs.size>3)TextButton(onClick={expanded=!expanded}){Text(if(expanded)"收起尺码" else "查看全部 ${attrs.size} 项")}
                 }
-            }
-
-            Column(Modifier.padding(Spacing.base)) {
-                // 标题区
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(g.name, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = FitTheme.colors.textMain)
-                        Spacer(Modifier.height(Spacing.xs))
-                        Text(
-                            "${g.type} · 标码 ${g.sizeLabel.ifBlank { "未填" }} · ${com.fitlog.app.ui.formatDate(g.createdAt)} 添加",
-                            style = Typography2.caption, color = FitTheme.colors.textSub
-                        )
-                    }
-                    FitTag(FitRating.from(g.fit))
-                }
-
-                if (listOf(g.brand, g.price, g.channel).any { it.isNotBlank() }) {
-                    Spacer(Modifier.height(Spacing.s))
-                    Text(
-                        listOf(g.brand, g.price, g.channel).filter { it.isNotBlank() }.joinToString(" · "),
-                        style = Typography2.caption, color = FitTheme.colors.textSub
-                    )
-                }
-
-                Spacer(Modifier.height(Spacing.base))
-
-                // 尺码数据卡
-                CardBox {
-                    Text("尺码数据", style = Typography2.sectionTitle, color = FitTheme.colors.textMain)
-                    Spacer(Modifier.height(Spacing.xs))
-                    if (attrs.isEmpty()) {
-                        Text("暂无尺码数据", style = Typography2.body, color = FitTheme.colors.textSub)
-                    } else {
-                        attrs.forEachIndexed { i, a ->
-                            if (i > 0) Divider(color = FitTheme.colors.line, thickness = 1.dp)
-                            Row(Modifier.fillMaxWidth().padding(vertical = Spacing.m)) {
-                                Text(
-                                    if (a.isCustom) "${a.name}（自定义）" else a.name,
-                                    style = Typography2.body, color = FitTheme.colors.textSub,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Text(
-                                    "${a.value} ${a.unit}",
-                                    style = Typography2.body, fontWeight = FontWeight.Bold,
-                                    color = FitTheme.colors.textMain
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // 备注
-                if (g.note.isNotBlank()) {
-                    Spacer(Modifier.height(Spacing.m))
-                    CardBox {
-                        Text("💬 ${g.note}", style = Typography2.body, color = FitTheme.colors.textSub)
-                    }
-                }
-
-                // 图片切换
-                if (images.size > 1) {
-                    Spacer(Modifier.height(Spacing.m))
-                    Row(Modifier.fillMaxWidth()) {
-                        images.forEach { img ->
-                            val selected = cover == img.path
-                            AsyncImage(
-                                model = File(img.path),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(72.dp)
-                                    .padding(end = Spacing.s)
-                                    .clip(RoundedCornerShape(Radius.field))
-                                    .then(
-                                        if (selected) Modifier.border(2.dp, Primary, RoundedCornerShape(Radius.field))
-                                        else Modifier
-                                    )
-                                    .clickable { cover = img.path }
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(Spacing.l))
-
-                // 操作区：一屏只有一个 Filled 主 CTA
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    OutlinedButton(
-                        onClick = { showDelete = true },
-                        modifier = Modifier.weight(1f).height(Touch.button),
-                        shape = RoundedCornerShape(Radius.field),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = FitRed)
-                    ) { Text("删除", fontSize = 13.sp) }
-                    OutlinedButton(
-                        onClick = { vm.duplicate(g.id) { onEdit(it) } },
-                        modifier = Modifier.weight(1f).height(Touch.button),
-                        shape = RoundedCornerShape(Radius.field),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary)
-                    ) { Text("复制", fontSize = 13.sp) }
-                    Button(
-                        onClick = { onEdit(g.id) },
-                        modifier = Modifier.weight(1f).height(Touch.button),
-                        shape = RoundedCornerShape(Radius.field),
-                        colors = ButtonDefaults.buttonColors(containerColor = Primary)
-                    ) { Text("编辑", fontSize = 13.sp, fontWeight = FontWeight.SemiBold) }
-                }
-                Spacer(Modifier.height(Spacing.xl))
-            }
+                if(g.note.isNotBlank()){Spacer(Modifier.height(20.dp));StudioNote(g.note)}
+            }}
+            val related=outfits.filter { o->links.any { it.outfitId==o.id&&it.garmentId==g.id } }
+            if(related.isNotEmpty()){Spacer(Modifier.height(28.dp));Text("包含它的搭配",style=Typography2.sectionTitle);related.forEach { o->Spacer(Modifier.height(16.dp));OutfitBoard(links.filter { it.outfitId==o.id }.sortedBy { it.sortOrder }.mapNotNull { p->garments.find { it.id==p.garmentId } },allImages,o.anchorId);Text(o.name,style=Typography2.cardTitle) }}
+            Row(Modifier.fillMaxWidth().padding(vertical=24.dp),horizontalArrangement=Arrangement.SpaceBetween){TextButton(onClick={vm.duplicate(g.id){onEdit(it)}}){Text("复制为新衣物")};TextButton(onClick={showDelete=true}){Text("删除衣物",color=SemanticError)}}
         }
     }
-
-    if (showDelete) {
-        AlertDialog(
-            onDismissRequest = { showDelete = false },
-            shape = RoundedCornerShape(Radius.hero),
-            containerColor = FitTheme.colors.surface,
-            title = { Text("确认删除？") },
-            text = { Text("该衣物及其图片将被删除，且不可恢复。") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showDelete = false
-                    vm.deleteGarment(g.id) { onBack() }
-                }) { Text("删除", color = FitRed) }
-            },
-            dismissButton = { TextButton(onClick = { showDelete = false }) { Text("取消") } }
-        )
-    }
+    if(showDelete)AlertDialog(onDismissRequest={showDelete=false},title={Text("删除这件衣物？")},text={Text("衣物和不再被其他记录引用的照片会被移除。搭配中将不再包含它。")},confirmButton={TextButton(onClick={showDelete=false;vm.deleteGarment(garmentId,onBack)}){Text("删除",color=SemanticError)}},dismissButton={TextButton(onClick={showDelete=false}){Text("取消")}})
 }
-
-private fun typePlaceholderColorLocal(type: String): Color =
-    com.fitlog.app.ui.typePlaceholderColor(type)

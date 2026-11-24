@@ -10,20 +10,29 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.fitlog.app.R
 import androidx.compose.ui.unit.sp
 
 /**
  * 版式层级（Type Scale）
  * 规范要求：层级不超过 3 个主要级别，字重搭配有对比
  */
+object StudioFonts {
+    val display=FontFamily(Font(R.font.source_han_serif))
+    val body=FontFamily(Font(R.font.source_han_sans))
+    val latin=FontFamily(Font(R.font.newsreader))
+    val numbers=FontFamily(Font(R.font.work_sans))
+}
 object Typography2 {
-    val pageTitle = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.01).sp)
-    val sectionTitle = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-    val cardTitle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-    val body = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal)
-    val caption = TextStyle(fontSize = 11.sp, fontWeight = FontWeight.Normal)
-    val numberBig = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.02).sp)
-    val numberMid = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold)
+    val pageTitle=TextStyle(fontFamily=StudioFonts.display,fontSize=30.sp,lineHeight=39.sp,color=TextMain)
+    val sectionTitle=TextStyle(fontFamily=StudioFonts.body,fontSize=18.sp,lineHeight=28.sp,fontWeight=FontWeight.Medium)
+    val cardTitle=TextStyle(fontFamily=StudioFonts.body,fontSize=16.sp,lineHeight=26.sp,fontWeight=FontWeight.Medium)
+    val body=TextStyle(fontFamily=StudioFonts.body,fontSize=16.sp,lineHeight=28.sp,letterSpacing=.3.sp)
+    val caption=TextStyle(fontFamily=StudioFonts.body,fontSize=13.sp,lineHeight=22.sp)
+    val numberBig=TextStyle(fontFamily=StudioFonts.numbers,fontSize=32.sp,lineHeight=42.sp)
+    val numberMid=TextStyle(fontFamily=StudioFonts.numbers,fontSize=18.sp)
 }
 
 /** 动态配色（浅色/深色）—— 页面通过它取色，支持深色模式 */
@@ -79,6 +88,13 @@ private val LightColors = lightColorScheme(
     primaryContainer = PrimaryLight,
     onPrimaryContainer = PrimaryDark,
     secondary = Primary,
+    onSecondary = Color.White,
+    secondaryContainer = PrimaryLight,
+    onSecondaryContainer = PrimaryDark,
+    tertiary = Primary,
+    onTertiary = Color.White,
+    tertiaryContainer = PrimaryLight,
+    onTertiaryContainer = PrimaryDark,
     background = BgGray,
     onBackground = TextMain,
     surface = Surface,
@@ -90,11 +106,18 @@ private val LightColors = lightColorScheme(
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF7FA3F0),
-    onPrimary = Color(0xFF0E1526),
-    primaryContainer = Color(0xFF24365E),
-    onPrimaryContainer = Color(0xFFD3E0FF),
-    secondary = Color(0xFF7FA3F0),
+    primary = Color(0xFFA9CDB2),
+    onPrimary = DarkBg,
+    primaryContainer = DarkSurface3,
+    onPrimaryContainer = DarkTextMain,
+    secondary = Color(0xFFA9CDB2),
+    onSecondary = DarkBg,
+    secondaryContainer = DarkSurface3,
+    onSecondaryContainer = DarkTextMain,
+    tertiary = Color(0xFFA9CDB2),
+    onTertiary = DarkBg,
+    tertiaryContainer = DarkSurface3,
+    onTertiaryContainer = DarkTextMain,
     background = DarkBg,
     onBackground = DarkTextMain,
     surface = DarkSurface1,
@@ -115,6 +138,11 @@ fun FitLogTheme(
     ) {
         MaterialTheme(
             colorScheme = if (darkTheme) DarkColors else LightColors,
+            typography=androidx.compose.material3.Typography(
+                bodyLarge=Typography2.body,bodyMedium=Typography2.body,bodySmall=Typography2.caption,
+                titleLarge=Typography2.sectionTitle,titleMedium=Typography2.cardTitle,titleSmall=Typography2.cardTitle,
+                labelLarge=Typography2.cardTitle,labelMedium=Typography2.caption,labelSmall=Typography2.caption,
+                headlineLarge=Typography2.pageTitle,headlineMedium=Typography2.pageTitle,headlineSmall=Typography2.sectionTitle),
             content = content
         )
     }

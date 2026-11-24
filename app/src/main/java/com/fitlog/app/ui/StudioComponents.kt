@@ -52,8 +52,14 @@ fun StageReveal(index:Int,content:@Composable ()->Unit){
 fun garmentColor(g:Garment):Color?=Styling.hex(g.mainColor)?.let { Color(android.graphics.Color.parseColor(it)) }
 @Composable
 fun GarmentPhoto(g:Garment,path:String?,modifier:Modifier=Modifier){
+    val context=LocalContext.current
     Box(modifier.background(FitTheme.colors.surfaceVariant),contentAlignment=Alignment.Center){
-        if(path!=null&&File(path).isFile())AsyncImage(File(path),contentDescription=g.name,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Fit)
+        if(path!=null&&File(path).isFile())AsyncImage(
+            model=coil.request.ImageRequest.Builder(context).data(File(path))
+                // 网格卡片限定 400px 解码 + RGB_565，滑动进入视口时避免大纹理解码上传
+                .size(400).bitmapConfig(android.graphics.Bitmap.Config.RGB_565).build(),
+            contentDescription=g.name,modifier=Modifier.fillMaxSize(),contentScale=ContentScale.Fit
+        )
         else Column(horizontalAlignment=Alignment.CenterHorizontally){Icon(Icons.Outlined.Checkroom,contentDescription=null,tint=garmentColor(g)?:FitTheme.colors.textSub,modifier=Modifier.size(40.dp));Spacer(Modifier.height(12.dp));Text(g.type,style=Typography2.caption,color=FitTheme.colors.textSub)}
     }
 }

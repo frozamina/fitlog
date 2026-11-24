@@ -13,16 +13,20 @@ android {
         applicationId = "com.fitlog.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 11
-        versionName = "0.4.5"
+        versionCode = 12
+        versionName = "0.4.6"
     }
 
     buildTypes {
+        // preview 从 release 派生：非 debuggable，运行时性能与正式包一致；
+        // 用 debug 密钥签名保证与已装包覆盖安装兼容；暂不开启 R8 混淆以规避运行时风险
         create("preview") {
-            initWith(getByName("debug"))
+            initWith(getByName("release"))
             applicationIdSuffix = ".preview"
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
             resValue("string", "app_name", "服集 FitLog")
-            matchingFallbacks += listOf("debug")
+            matchingFallbacks += listOf("release")
         }
         release {
             isMinifyEnabled = false

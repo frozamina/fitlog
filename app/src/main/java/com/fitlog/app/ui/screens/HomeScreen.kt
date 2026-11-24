@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -225,6 +226,7 @@ private fun StaggerIn(index: Int, content: @Composable () -> Unit) {
 
 @Composable
 private fun GarmentRow(vm: AppViewModel, g: Garment, onClick: (Long) -> Unit) {
+    val context = LocalContext.current
     val images by vm.imagesFlow(g.id).collectAsState(initial = emptyList())
     val cover = images.firstOrNull()
 
@@ -235,7 +237,12 @@ private fun GarmentRow(vm: AppViewModel, g: Garment, onClick: (Long) -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (cover != null && java.io.File(cover.path).exists()) {
                 AsyncImage(
-                    model = java.io.File(cover.path),
+                    model = coil.request.ImageRequest.Builder(context)
+                        .data(java.io.File(cover.path))
+                        // 56dp 缩略图限定解码尺寸 + RGB_565，避免共享缓存被大图占用
+                        .size(200)
+                        .bitmapConfig(android.graphics.Bitmap.Config.RGB_565)
+                        .build(),
                     contentDescription = null,
                     contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                     modifier = Modifier

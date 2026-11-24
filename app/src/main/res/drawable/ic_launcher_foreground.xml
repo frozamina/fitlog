@@ -4,18 +4,12 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- 白色 T 恤 -->
+    <!-- 衣架与 F 相连的标志，预留自适应图标安全区。 -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M40,26 L30,32 L21,45 L34,52 L34,86 L74,86 L74,52 L87,45 L78,32 L68,26 C68,26 62,34 54,34 C46,34 40,26 40,26 Z" />
-    <!-- 中间：蓝色底的尺子 -->
-    <path
-        android:fillColor="#3B6FE0"
-        android:pathData="M45,50 h18 v36 h-18 z" />
-    <!-- 白色刻度（长刻度 + 短刻度交替） -->
-    <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="2"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#F6F8F3"
+        android:strokeWidth="4.2"
         android:strokeLineCap="round"
-        android:pathData="M47,56 h7 M47,63 h4 M47,70 h7 M47,77 h4 M47,84 h7" />
+        android:strokeLineJoin="round"
+        android:pathData="M48.5,36.5 C49.2,32.1 52.1,29.8 55.5,29.8 C59.6,29.8 62.5,32.8 62.5,36.7 C62.5,39.5 61.0,41.8 57.7,43.2 C56.1,43.9 55,45.1 55,47.5 L55,48.5 M55,48.5 L33.5,61 M55,48.5 L76,60.8 Q77.3,61.6 76.5,62.5 Q76.2,63 74.5,63 L51,63 C47.5,63 45.6,64.6 44.8,68.1 L41.5,80 M44.5,72.8 C45.5,70.4 47.7,69.7 50,69.7 L62.5,69.7" />
 </vector>

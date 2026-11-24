@@ -29,7 +29,7 @@ fun AppNav(){
     fun style(id:Long,edit:Long=0,copy:Long=0){nav.navigate("style/$id?edit=$edit&copy=$copy")}
     val error by vm.errors.collectAsState()
     Scaffold(containerColor=FitTheme.colors.bg,
-        topBar={if(top)TopAppBar(title={Text("FitLog",fontFamily=StudioFonts.latin,fontSize=34.sp,color=FitTheme.colors.textMain)},actions={TextButton(onClick={nav.navigate("settings")}){Icon(Icons.Outlined.Tune,contentDescription=null,modifier=Modifier.size(18.dp));Spacer(Modifier.width(6.dp));Text("我的",fontSize=14.sp)}},colors=TopAppBarDefaults.topAppBarColors(containerColor=FitTheme.colors.bg))},
+        topBar={if(top)TopAppBar(title={Text("服集 FitLog",fontSize=27.sp,color=FitTheme.colors.textMain)},actions={TextButton(onClick={nav.navigate("settings")}){Icon(Icons.Outlined.Tune,contentDescription=null,modifier=Modifier.size(18.dp));Spacer(Modifier.width(6.dp));Text("我的",fontSize=14.sp)}},colors=TopAppBarDefaults.topAppBarColors(containerColor=FitTheme.colors.bg))},
         bottomBar={if(top)NavigationBar(containerColor=FitTheme.colors.surface,tonalElevation=0.dp){
             listOf(Triple("closet","衣橱",Icons.Outlined.Checkroom),Triple("outfits","搭配",Icons.Outlined.Layers),Triple("inspiration","灵感",Icons.Outlined.Palette)).forEach { (path,label,icon) ->
                 NavigationBarItem(selected=route?.startsWith(path)==true,onClick={nav.navigate(path){popUpTo("closet?palette={palette}"){saveState=true};launchSingleTop=true;restoreState=true}},icon={Icon(icon,contentDescription=null)},label={Text(label,fontSize=13.sp)},colors=NavigationBarItemDefaults.colors(indicatorColor=PrimaryLight,selectedIconColor=Primary,selectedTextColor=Primary))

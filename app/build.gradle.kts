@@ -13,8 +13,8 @@ android {
         applicationId = "com.fitlog.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.4.0"
+        versionCode = 7
+        versionName = "0.4.1"
     }
 
     buildTypes {
@@ -22,7 +22,7 @@ android {
             initWith(getByName("debug"))
             applicationIdSuffix = ".preview"
             versionNameSuffix = "-preview"
-            resValue("string", "app_name", "FitLog 预览版")
+            resValue("string", "app_name", "服集 FitLog 预览")
             matchingFallbacks += listOf("debug")
         }
         release {

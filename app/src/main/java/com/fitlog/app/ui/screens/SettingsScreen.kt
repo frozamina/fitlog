@@ -132,7 +132,7 @@ fun SettingsScreen(vm: AppViewModel, onBody: () -> Unit = {}) {
 
             SectionTitle("其他")
             CardBox {
-                RowItem("", "关于 FitLog", "v0.4.0 · 鼠尾草绿") { }
+                RowItem("", "关于 服集 FitLog", "v0.4.1 · 鼠尾草绿") { }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
                 RowItem("", "技术栈", "Kotlin · Compose · Room") { }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)

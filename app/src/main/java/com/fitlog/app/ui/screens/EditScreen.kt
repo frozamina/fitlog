@@ -14,6 +14,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -40,6 +41,8 @@ import com.fitlog.app.ui.FitToast
 import com.fitlog.app.ui.IconAction
 import com.fitlog.app.ui.LabeledField
 import com.fitlog.app.ui.TypeChip
+import com.fitlog.app.ui.ColorPickerDialog
+import com.fitlog.app.ui.GarmentSwatches
 import com.fitlog.app.ui.theme.*
 import com.fitlog.app.util.ImageStore
 import com.fitlog.app.vm.AppViewModel
@@ -71,6 +74,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
     val attrs = remember { mutableStateListOf<AttrRow>() }
     val images = remember { mutableStateListOf<ImgPick>() }
     var showAddAttr by remember { mutableStateOf(false) }
+    var showColorPicker by remember { mutableStateOf(false) }
     var newAttrName by remember { mutableStateOf("") }
     var toast by remember { mutableStateOf<String?>(null) }
 
@@ -224,13 +228,35 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
 
                 SectionTitle("颜色与版型")
                 LabeledField("主色（可选）",mainColor,{mainColor=it},"#RRGGBB，例如 #A9BEC7")
-                Row(Modifier.fillMaxWidth().padding(bottom=16.dp),horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-                    listOf("#A9BEC7","#555C5B","#E8E5DA","#788674","#C4B9A4","#292D2C").forEach { hex ->
-                        Box(Modifier.size(44.dp).clickable { mainColor=hex },contentAlignment=Alignment.Center) {
-                            Box(Modifier.size(22.dp).background(Color(android.graphics.Color.parseColor(hex)),RoundedCornerShape(11.dp)).border(if(mainColor.equals(hex,true))2.dp else 1.dp,FitTheme.colors.textSub,RoundedCornerShape(11.dp)))
-                        }
+                // 常用色板（低饱和衣物色）
+                FlowRow(
+                    Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    GarmentSwatches.forEach { hex ->
+                        val selected = mainColor.equals(hex, true)
+                        Box(
+                            Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(Color(android.graphics.Color.parseColor(hex)))
+                                .border(
+                                    if (selected) 2.5.dp else 1.dp,
+                                    if (selected) PrimaryDark else FitTheme.colors.line,
+                                    CircleShape
+                                )
+                                .clickable { mainColor = hex }
+                        )
                     }
                 }
+                // 拖拽自定义选色（仿美图秀秀/醒图）
+                OutlinedButton(
+                    onClick = { showColorPicker = true },
+                    modifier = Modifier.fillMaxWidth().height(44.dp).padding(bottom = 4.dp),
+                    shape = RoundedCornerShape(Radius.field),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary)
+                ) { Text("🎨 自定义颜色（拖动选色）", fontSize = 14.sp) }
                 FieldLabel("图案")
                 FlowRow { listOf("未标注","纯色","条纹","格纹","印花").forEach { value -> TypeChip(value,pattern==value){pattern=value} } }
                 FieldLabel("衣服本身的版型")
@@ -467,6 +493,15 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
         ) {
             FitToast(message = toast ?: "", visible = toast != null)
         }
+    }
+
+    // 自定义选色弹窗
+    if (showColorPicker) {
+        ColorPickerDialog(
+            initialHex = mainColor,
+            onConfirm = { mainColor = it; showColorPicker = false },
+            onDismiss = { showColorPicker = false }
+        )
     }
 
     toast?.let { msg ->

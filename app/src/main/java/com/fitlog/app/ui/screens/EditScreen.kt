@@ -139,7 +139,12 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
     // 校验：名称 + 至少一个尺码属性
     fun doSave() {
         if (name.isBlank()) { toast = "请填写衣物名称"; return }
-        if(mainColor.isNotBlank() && com.fitlog.app.data.Styling.hex(mainColor)==null){toast="主色请填写 #RRGGBB，或暂时留空";return}
+        if (mainColor.isNotBlank()) {
+            // 支持 #RRGGBB / 六位色号 / 中文色名（黑色、雾蓝、驼色…），保存前统一转换为色号
+            val resolved = com.fitlog.app.data.ColorNames.resolve(mainColor)
+            if (resolved == null) { toast = "没认出这个颜色，试试色号 #RRGGBB 或常用色名（黑色 / 雾蓝 / 驼色…）"; return }
+            mainColor = resolved
+        }
         vm.saveGarment(
             garment = (original ?: Garment(name="",type=type)).copy(
                 id = if (garmentId > 0) garmentId else 0,
@@ -227,7 +232,7 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                 Spacer(Modifier.height(Spacing.s))
 
                 SectionTitle("颜色与版型")
-                LabeledField("主色（可选）",mainColor,{mainColor=it},"#RRGGBB，例如 #A9BEC7")
+                LabeledField("主色（可选）",mainColor,{mainColor=it},"色号 #RRGGBB 或颜色名，如 黑色 / 雾蓝")
                 // 常用色板（低饱和衣物色）
                 FlowRow(
                     Modifier.fillMaxWidth().padding(bottom = 12.dp),

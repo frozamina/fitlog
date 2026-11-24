@@ -116,7 +116,9 @@ fun InspirationScreen(vm:AppViewModel,onPalette:(String)->Unit,onStyle:(Long)->U
     val garments by vm.garments.collectAsState()
     LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(28.dp)){
         item{StageReveal(0){StudioHeading("COLOUR & IDEAS","配色灵感","好看的颜色，最终落到你自己的衣物上。")}}
-        items(StudioPalettes.all){p->StageReveal(1){
+        items(StudioPalettes.all,key={it.id}){p->
+            // 预解析颜色，避免每次重组都做字符串解析
+            val swatches=remember(p.id){p.colors.map{c->Color(android.graphics.Color.parseColor(c))}}
             Surface(
                 shape=RoundedCornerShape(16.dp),
                 color=FitTheme.colors.surface,
@@ -127,11 +129,11 @@ fun InspirationScreen(vm:AppViewModel,onPalette:(String)->Unit,onStyle:(Long)->U
                     Text(p.name,style=Typography2.cardTitle,color=FitTheme.colors.textMain)
                     Spacer(Modifier.height(6.dp));Text(p.description,style=Typography2.caption,color=FitTheme.colors.textSub)
                     Spacer(Modifier.height(12.dp))
-                    Row(Modifier.fillMaxWidth().height(90.dp).clip(RoundedCornerShape(12.dp))){p.colors.forEach { c->Box(Modifier.weight(1f).fillMaxHeight().background(Color(android.graphics.Color.parseColor(c))))}}
+                    Row(Modifier.fillMaxWidth().height(90.dp).clip(RoundedCornerShape(12.dp))){swatches.forEach { c->Box(Modifier.weight(1f).fillMaxHeight().background(c))}}
                     TextButton(onClick={onPalette(p.id)},contentPadding=PaddingValues(horizontal=0.dp),modifier=Modifier.heightIn(min=44.dp)){Text("在衣橱中寻找相近颜色",fontSize=13.sp,color=MaterialTheme.colorScheme.primary)}
                 }
             }
-        }}
+        }
         item{StageReveal(2){StudioNote("这是配色灵感示例，不代表你的个人四季色彩结论。主色可以在衣物编辑中修正。")}}
         if(garments.any{Styling.slot(it.type)!=Styling.Slot.NONE})item{TextButton(onClick={onStyle(garments.first{Styling.slot(it.type)!=Styling.Slot.NONE}.id)}){Text("从一件已有单品开始搭配")}}
     }

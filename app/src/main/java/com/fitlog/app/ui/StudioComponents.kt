@@ -40,13 +40,14 @@ fun StudioHeading(eyebrow:String,title:String,description:String){
         if(description.isNotBlank()){Spacer(Modifier.height(10.dp));Text(description,style=Typography2.body,color=FitTheme.colors.textSub)}
     }
 }
+/**
+ * 入场动画已移除：LazyColumn 滑动时每个新组合的条目都会触发
+ * 「延迟+淡入+上滑」动画，导致连续掉帧（实测约 1/3 帧被丢弃）。
+ * 保留函数与调用点，内容直接渲染，保证所有列表页滑动流畅。
+ */
 @Composable
 fun StageReveal(index:Int,content:@Composable ()->Unit){
-    val context=LocalContext.current
-    val animate=remember { runCatching { Settings.Global.getFloat(context.contentResolver,Settings.Global.ANIMATOR_DURATION_SCALE,1f)>0f }.getOrDefault(true) }
-    var visible by remember { mutableStateOf(!animate) }
-    LaunchedEffect(Unit){if(animate)delay((index.coerceAtMost(4)*80).toLong());visible=true}
-    AnimatedVisibility(visible,enter=fadeIn(tween(220))+slideInVertically(tween(300)){it/12}){content()}
+    content()
 }
 fun garmentColor(g:Garment):Color?=Styling.hex(g.mainColor)?.let { Color(android.graphics.Color.parseColor(it)) }
 @Composable

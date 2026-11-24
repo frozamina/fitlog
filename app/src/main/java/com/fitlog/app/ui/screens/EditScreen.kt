@@ -400,7 +400,11 @@ fun EditScreen(vm: AppViewModel, garmentId: Long, onBack: () -> Unit) {
                                                 }
                                         ) {
                                             AsyncImage(
-                                                model = File(item.path),
+                                                model = coil.request.ImageRequest.Builder(context)
+                                                    .data(File(item.path))
+                                                    // 缩略图网格限定解码尺寸，避免原图解码拖慢滑动
+                                                    .size(720)
+                                                    .build(),
                                                 contentDescription = null,
                                                 modifier = Modifier.fillMaxSize()
                                             )

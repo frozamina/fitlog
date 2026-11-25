@@ -122,8 +122,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         } finally { aiBusy.value = false }
     }
 
-    /** 配色问答（SSE 流式：AI 消息逐字更新，首字前 UI 显示思考指示器） */
-    fun sendChat(text: String) {
+    /** 配色问答（SSE 流式：AI 消息逐字更新，首字前 UI 显示思考指示器）；useWardrobe=true 时注入衣橱明细 */
+    fun sendChat(text: String, useWardrobe: Boolean = false) {
         val msg = text.trim()
         if (msg.isEmpty() || aiBusy.value) return
         if (!ai.hasKey()) {
@@ -140,7 +140,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
             val placeholder = com.fitlog.app.data.ChatMessage("assistant", "", now + 1)
             chatMessages.value = chatMessages.value + placeholder
             try {
-                val msgs = ai.chatMessages(msg, history)
+                val wardrobe = if (useWardrobe) com.fitlog.app.data.AiRepository.buildWardrobeDetail(garments.value) else null
+                val msgs = ai.chatMessages(msg, history, wardrobe)
                 val reply = com.fitlog.app.data.DeepSeekClient.chatStream(
                     apiKey = ai.key(), messages = msgs, maxTokens = 500
                 ) { delta ->

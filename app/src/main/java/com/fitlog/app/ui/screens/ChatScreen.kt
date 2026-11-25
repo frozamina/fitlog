@@ -40,6 +40,7 @@ fun ChatScreen(vm: AppViewModel, onBack: () -> Unit) {
     val messages by vm.chatMessages.collectAsState()
     val busy by vm.aiBusy.collectAsState()
     var input by remember { mutableStateOf("") }
+    var useWardrobe by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
     // 新消息或流式内容增长时滚动到底部（reverseLayout 下最新在 index 0）
@@ -62,7 +63,7 @@ fun ChatScreen(vm: AppViewModel, onBack: () -> Unit) {
                         Spacer(Modifier.height(20.dp))
                         listOf("藏青裤子配什么颜色上衣", "秋冬怎么穿大地色", "黑白灰怎么穿不无聊").forEach { q ->
                             OutlinedButton(
-                                onClick = { vm.sendChat(q) },
+                                onClick = { vm.sendChat(q, useWardrobe) },
                                 enabled = !busy,
                                 shape = RoundedCornerShape(Radius.field),
                                 modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp).padding(vertical = 4.dp)
@@ -83,7 +84,24 @@ fun ChatScreen(vm: AppViewModel, onBack: () -> Unit) {
                     }
                 }
             }
-            // 输入行
+            // 衣橱开关 + 输入行
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .background(FitTheme.colors.surface)
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = useWardrobe,
+                    onCheckedChange = { useWardrobe = it },
+                    enabled = !busy,
+                    modifier = Modifier.size(36.dp)
+                )
+                Text("结合我的衣橱", fontSize = 13.sp, color = FitTheme.colors.textMain)
+                Spacer(Modifier.weight(1f))
+                Text("开启后 AI 可读取衣物名称与颜色", fontSize = 11.sp, color = FitTheme.colors.textSub)
+            }
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -101,7 +119,7 @@ fun ChatScreen(vm: AppViewModel, onBack: () -> Unit) {
                 )
                 Spacer(Modifier.width(8.dp))
                 FilledIconButton(
-                    onClick = { val t = input; input = ""; vm.sendChat(t) },
+                    onClick = { val t = input; input = ""; vm.sendChat(t, useWardrobe) },
                     enabled = !busy && input.isNotBlank(),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = Primary, contentColor = FitTheme.colors.surface),
                     modifier = Modifier.size(40.dp)

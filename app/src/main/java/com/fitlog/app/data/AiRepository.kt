@@ -37,10 +37,13 @@ class AiRepository(private val ctx: Context) {
         )
     }
 
-    /** 聊天的 messages：system（含检索知识）+ 最近 8 条历史 + 当前问题 */
-    suspend fun chatMessages(userText: String, history: List<ChatMessage>): List<DeepSeekClient.Message> {
+    /** 聊天的 messages：system（含检索知识 + 可选衣橱明细）+ 最近 8 条历史 + 当前问题 */
+    suspend fun chatMessages(userText: String, history: List<ChatMessage>, wardrobe: String? = null): List<DeepSeekClient.Message> {
         val ref = ColorKnowledge.inject(knowledge.search(userText))
-        val msgs = listOf(DeepSeekClient.Message("system", CHAT_PROMPT.replace("@@REF@@", ref))) +
+        val wd = if (wardrobe.isNullOrBlank()) "（未开启衣橱结合，仅凭通用知识回答）" else wardrobe
+        val msgs = listOf(DeepSeekClient.Message("system", CHAT_PROMPT
+            .replace("@@REF@@", ref)
+            .replace("@@WARDROBE@@", wd))) +
             history.filter { !it.isError && it.content.isNotBlank() }.takeLast(8)
                 .map { DeepSeekClient.Message(it.role, it.content) } +
             DeepSeekClient.Message("user", userText)
@@ -66,10 +69,14 @@ class AiRepository(private val ctx: Context) {
             1. 只回答穿搭配色相关问题；无关话题礼貌引导回配色话题；
             2. 优先依据下方【参考资料】回答，不要编造色号；资料未覆盖时可用你的通用搭配常识；
             3. 回答不超过 150 字，可分点；涉及具体组合时给出可直接使用的颜色组合（如「藏青 + 奶白 + 浅驼」）；
-            4. 不提供医疗、占卜等无关内容；不确定时如实说明。
+            4. 不提供医疗、占卜等无关内容；不确定时如实说明；
+            5. 若【我的衣橱】列出了用户真实衣物，涉及「我的衣服/帮我搭」类问题时优先基于这些衣物给建议，引用衣物名称；衣橱为空或未开启时不要假设用户拥有什么。
 
             【参考资料】
             @@REF@@
+
+            【我的衣橱】
+            @@WARDROBE@@
         """.trimIndent()
 
         /**
@@ -106,6 +113,29 @@ class AiRepository(private val ctx: Context) {
                 .take(topN)
                 .joinToString("、") { "${it.key}×${it.value}" }
             return text.take(maxChars)
+        }
+
+        /**
+         * 衣橱明细（聊天用，勾选「结合我的衣橱」后注入）：每件一行，
+         * 含名称、色名、类别、图案、版型、实穿感受（品牌/价格/备注等私人文字不发）。
+         * 最多 topN 件（收藏优先），总长 ≤maxChars。
+         */
+        fun buildWardrobeDetail(garments: List<Garment>, topN: Int = 40, maxChars: Int = 700): String {
+            val usable = garments.filter { it.mainColor.isNotBlank() || it.name.isNotBlank() }
+            if (usable.isEmpty()) return ""
+            val lines = usable
+                .sortedByDescending { it.favorite }
+                .take(topN)
+                .map { g ->
+                    val parts = mutableListOf<String>()
+                    if (g.mainColor.isNotBlank()) parts.add(ColorNames.nameOf(g.mainColor) ?: Styling.hex(g.mainColor)?.let { "色号$it" } ?: "其他色")
+                    if (g.type.isNotBlank()) parts.add(g.type)
+                    if (g.pattern.isNotBlank() && g.pattern != "未标注") parts.add(g.pattern)
+                    if (g.silhouette.isNotBlank() && g.silhouette != "未标注") parts.add(g.silhouette)
+                    if (g.fit.isNotBlank() && g.fit != FitRating.UNRATED.label) parts.add("实穿:${g.fit}")
+                    "· ${g.name}（${parts.joinToString("，")}）"
+                }
+            return lines.joinToString("\n").take(maxChars)
         }
     }
 }

@@ -58,7 +58,7 @@ class AiRepository(private val ctx: Context) {
             严格只输出 JSON，不要输出任何其他文字，格式：
             {"name":"方案名（不超过8字）","description":"一句话配色思路（不超过40字）","colors":["#RRGGBB"]}
             要求：
-            1. colors 为 3~5 个颜色，必须是大写 #RRGGBB 格式；
+            1. colors 为 3~4 个颜色（绝不超过 4 个——一套穿搭主色+辅助色+点缀色最多 4 个就够），必须是大写 #RRGGBB 格式；
             2. 颜色为低饱和、贴近真实面料的服装色，禁用荧光色；至少包含一个中性色（黑白灰米、牛仔蓝等）便于日常搭配；
             3. 若用户消息附有衣橱摘要（中文色名×类别统计），优先从中取色，或给出与其协调的新颜色；
             4. 名称与描述使用简体中文。
@@ -90,7 +90,7 @@ class AiRepository(private val ctx: Context) {
             val p = runCatching {
                 Json { ignoreUnknownKeys = true }.decodeFromString(AiPalette.serializer(), cleaned)
             }.getOrNull() ?: return null
-            val colors = p.colors.mapNotNull { Styling.hex(it) }.distinct()
+            val colors = p.colors.mapNotNull { Styling.hex(it) }.distinct().take(4)
             if (colors.size < 2) return null
             return p.copy(
                 name = p.name.trim().ifBlank { "AI 配色" },

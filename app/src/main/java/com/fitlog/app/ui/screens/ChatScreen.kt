@@ -7,7 +7,9 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,6 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowUpward
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,21 +29,29 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fitlog.app.data.ChatMessage
+import com.fitlog.app.data.ChatSession
 import com.fitlog.app.ui.FitTextField
 import com.fitlog.app.ui.theme.*
 import com.fitlog.app.vm.AppViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-/** 配色问答聊天页：SSE 流式回复逐字更新，首字前显示思考指示器。 */
+/** 配色问答聊天页：SSE 流式回复逐字更新，首字前显示思考指示器；右上角历史对话（长按删除）。 */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatScreen(vm: AppViewModel, onBack: () -> Unit) {
     val messages by vm.chatMessages.collectAsState()
     val busy by vm.aiBusy.collectAsState()
     var input by remember { mutableStateOf("") }
     var useWardrobe by remember { mutableStateOf(false) }
+    var showHistory by remember { mutableStateOf(false) }
+    var deleteTarget by remember { mutableStateOf<ChatSession?>(null) }
     val listState = rememberLazyListState()
 
     // 新消息或流式内容增长时滚动到底部（reverseLayout 下最新在 index 0）
@@ -48,7 +59,11 @@ fun ChatScreen(vm: AppViewModel, onBack: () -> Unit) {
         if (messages.isNotEmpty()) listState.animateScrollToItem(0)
     }
 
-    StudioSubPage("配色问答", onBack) {
+    StudioSubPage("配色问答", onBack, actions = {
+        IconButton(onClick = { showHistory = true }) {
+            Icon(Icons.Outlined.History, contentDescription = "历史对话", tint = FitTheme.colors.textSub)
+        }
+    }) {
         Column(Modifier.fillMaxSize()) {
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 if (messages.isEmpty()) {
@@ -125,6 +140,78 @@ fun ChatScreen(vm: AppViewModel, onBack: () -> Unit) {
                     modifier = Modifier.size(40.dp)
                 ) { Icon(Icons.Outlined.ArrowUpward, contentDescription = "发送", modifier = Modifier.size(20.dp)) }
             }
+        }
+    }
+
+    // 历史对话弹层：点击载入，长按删除
+    if (showHistory) {
+        val sessions by vm.chatSessions.collectAsState()
+        ModalBottomSheet(onDismissRequest = { showHistory = false }, containerColor = FitTheme.colors.surface) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp).padding(bottom = 20.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("历史对话", style = Typography2.sectionTitle, color = FitTheme.colors.textMain)
+                    Spacer(Modifier.weight(1f))
+                    TextButton(onClick = { vm.clearChat(); showHistory = false }, enabled = !busy) {
+                        Text("新建对话", fontSize = 13.sp)
+                    }
+                }
+                if (sessions.isEmpty()) {
+                    Text(
+                        "还没有历史对话",
+                        style = Typography2.caption,
+                        color = FitTheme.colors.textSub,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp)
+                    )
+                } else {
+                    LazyColumn(Modifier.fillMaxWidth().heightIn(max = 420.dp)) {
+                        items(sessions, key = { it.id }) { s ->
+                            HistoryRow(
+                                s,
+                                onClick = { vm.loadChatSession(s.id); showHistory = false },
+                                onLongClick = { deleteTarget = s }
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    Text("点击继续对话 · 长按删除", fontSize = 11.sp, color = FitTheme.colors.textSub, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                }
+            }
+        }
+    }
+
+    // 长按删除确认
+    deleteTarget?.let { s ->
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null },
+            title = { Text("删除这条对话？") },
+            text = { Text("「${s.title}」将被删除，无法恢复。") },
+            confirmButton = {
+                TextButton(onClick = { vm.deleteChatSession(s.id); deleteTarget = null }) {
+                    Text("删除", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { deleteTarget = null }) { Text("取消") } }
+        )
+    }
+}
+
+/** 历史会话行：标题 + 时间与条数；长按触发删除 */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun HistoryRow(s: ChatSession, onClick: () -> Unit, onLongClick: () -> Unit) {
+    val time = remember(s.updatedAt) { SimpleDateFormat("MM-dd HH:mm", Locale.CHINA).format(Date(s.updatedAt)) }
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(s.title, style = Typography2.body, color = FitTheme.colors.textMain, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(4.dp))
+            Text("$time · ${s.messages.size} 条", style = Typography2.caption, color = FitTheme.colors.textSub)
         }
     }
 }

@@ -8,7 +8,8 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class AiPalette(val name: String = "", val description: String = "", val colors: List<String> = emptyList())
 
-/** 聊天消息（UI 展示与请求历史共用） */
+/** 聊天消息（UI 展示与请求历史共用；@Serializable 供历史会话持久化） */
+@Serializable
 data class ChatMessage(val role: String, val content: String, val time: Long = 0, val isError: Boolean = false)
 
 /**

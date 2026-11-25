@@ -87,6 +87,26 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val aiBusy = kotlinx.coroutines.flow.MutableStateFlow(false)
     val chatMessages = kotlinx.coroutines.flow.MutableStateFlow<List<com.fitlog.app.data.ChatMessage>>(emptyList())
 
+    // 聊天历史：会话列表 + 当前会话 id（0 表示尚未落盘的新对话）
+    private val aiCtx = app.applicationContext
+    val chatSessions = kotlinx.coroutines.flow.MutableStateFlow<List<com.fitlog.app.data.ChatSession>>(emptyList())
+    private var currentSessionId = 0L
+
+    init { chatSessions.value = com.fitlog.app.data.ChatHistory.load(aiCtx) }
+
+    /** 载入一段历史会话继续聊 */
+    fun loadChatSession(id: Long) {
+        val s = chatSessions.value.find { it.id == id } ?: return
+        currentSessionId = id
+        chatMessages.value = s.messages
+    }
+
+    /** 长按删除历史会话；删的是当前会话时同时清空聊天区 */
+    fun deleteChatSession(id: Long) {
+        chatSessions.value = com.fitlog.app.data.ChatHistory.delete(aiCtx, id)
+        if (currentSessionId == id) { currentSessionId = 0L; chatMessages.value = emptyList() }
+    }
+
     fun saveApiKey(key: String) {
         ai.saveKey(key)
         apiKeyState.value = ai.hasKey()
@@ -161,9 +181,18 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
                     list[list.lastIndex] = err
                     chatMessages.value = list
                 } else chatMessages.value = chatMessages.value + err
-            } finally { aiBusy.value = false }
+            } finally {
+                aiBusy.value = false
+                // 对话落盘：有 AI 回复才记入历史（标题取首条用户消息）
+                val msgs = chatMessages.value
+                if (msgs.any { it.role == "assistant" && !it.isError && it.content.isNotBlank() }) {
+                    if (currentSessionId == 0L) currentSessionId = System.currentTimeMillis()
+                    chatSessions.value = com.fitlog.app.data.ChatHistory.upsert(aiCtx, currentSessionId, msgs)
+                }
+            }
         }
     }
 
-    fun clearChat() { chatMessages.value = emptyList() }
+    /** 开始新对话（清空聊天区并脱离当前会话） */
+    fun clearChat() { chatMessages.value = emptyList(); currentSessionId = 0L }
 }

@@ -27,8 +27,8 @@ import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StudioSubPage(title:String,onBack:()->Unit,content:@Composable ()->Unit){
-    Scaffold(containerColor=FitTheme.colors.bg,topBar={TopAppBar(title={Text(title,style=Typography2.cardTitle)},navigationIcon={IconButton(onClick=onBack){Icon(Icons.Outlined.ArrowBack,contentDescription="返回")}},colors=TopAppBarDefaults.topAppBarColors(containerColor=FitTheme.colors.bg))}){p->Box(Modifier.padding(p)){content()}}
+fun StudioSubPage(title:String,onBack:()->Unit,actions:@Composable androidx.compose.foundation.layout.RowScope.()->Unit={},content:@Composable ()->Unit){
+    Scaffold(containerColor=FitTheme.colors.bg,topBar={TopAppBar(title={Text(title,style=Typography2.cardTitle)},navigationIcon={IconButton(onClick=onBack){Icon(Icons.Outlined.ArrowBack,contentDescription="返回")}},actions=actions,colors=TopAppBarDefaults.topAppBarColors(containerColor=FitTheme.colors.bg))}){p->Box(Modifier.padding(p)){content()}}
 }
 @Composable
 fun OutfitsScreen(vm:AppViewModel,onNew:()->Unit,onEdit:(Long)->Unit,onCopy:(Long)->Unit){

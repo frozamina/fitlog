@@ -21,10 +21,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fitlog.app.data.ChatMessage
+import com.fitlog.app.ui.FitTextField
 import com.fitlog.app.ui.theme.*
 import com.fitlog.app.vm.AppViewModel
 
@@ -87,22 +93,19 @@ fun ChatScreen(vm: AppViewModel, onBack: () -> Unit) {
                     .padding(horizontal = 12.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedTextField(
+                FitTextField(
                     value = input,
                     onValueChange = { input = it },
-                    placeholder = { Text("输入配色问题…", fontSize = 14.sp) },
-                    singleLine = false,
-                    maxLines = 3,
-                    shape = RoundedCornerShape(Radius.field),
-                    modifier = Modifier.weight(1f).heightIn(min = 44.dp)
+                    modifier = Modifier.weight(1f),
+                    placeholder = "输入配色问题…"
                 )
                 Spacer(Modifier.width(8.dp))
                 FilledIconButton(
                     onClick = { val t = input; input = ""; vm.sendChat(t) },
                     enabled = !busy && input.isNotBlank(),
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = Primary, contentColor = FitTheme.colors.surface),
-                    modifier = Modifier.size(44.dp)
-                ) { Icon(Icons.Outlined.ArrowUpward, contentDescription = "发送") }
+                    modifier = Modifier.size(40.dp)
+                ) { Icon(Icons.Outlined.ArrowUpward, contentDescription = "发送", modifier = Modifier.size(20.dp)) }
             }
         }
     }
@@ -130,7 +133,7 @@ private fun MessageBubble(m: ChatMessage, thinking: Boolean) {
                 ThinkingDots(Modifier.padding(horizontal = 18.dp, vertical = 14.dp))
             } else {
                 Text(
-                    m.content,
+                    md(m.content),
                     style = Typography2.body,
                     color = if (m.isError) MaterialTheme.colorScheme.onErrorContainer else FitTheme.colors.textMain,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
@@ -157,5 +160,14 @@ private fun ThinkingDots(modifier: Modifier = Modifier) {
             )
             Box(Modifier.size(7.dp).clip(CircleShape).background(Primary.copy(alpha = alpha)))
         }
+    }
+}
+
+/** 轻量 Markdown 渲染：**加粗** → 半粗体（星号不显示）；列表序号、破折号等保持原样 */
+private fun md(text: String): AnnotatedString = buildAnnotatedString {
+    text.split("**").forEachIndexed { i, part ->
+        if (part.isEmpty()) return@forEachIndexed
+        if (i % 2 == 1) withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) { append(part) }
+        else append(part)
     }
 }

@@ -31,13 +31,13 @@ import java.io.File
 
 @Composable
 fun StudioHeading(eyebrow:String,title:String,description:String){
-    Column(Modifier.fillMaxWidth().padding(top=20.dp,bottom=24.dp)){
+    Column(Modifier.fillMaxWidth().padding(top=8.dp,bottom=16.dp)){
         if(eyebrow.isNotBlank()){
             Text(eyebrow,style=Typography2.caption,color=FitTheme.colors.textSub)
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
         }
         Text(title,style=Typography2.pageTitle,color=FitTheme.colors.textMain,modifier=Modifier.semantics { heading() })
-        if(description.isNotBlank()){Spacer(Modifier.height(10.dp));Text(description,style=Typography2.body,color=FitTheme.colors.textSub)}
+        if(description.isNotBlank()){Spacer(Modifier.height(8.dp));Text(description,style=Typography2.body,color=FitTheme.colors.textSub)}
     }
 }
 /**

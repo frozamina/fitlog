@@ -28,7 +28,7 @@ fun DetailScreen(vm:AppViewModel,garmentId:Long,onBack:()->Unit,onEdit:(Long)->U
             StageReveal(0){GarmentPhoto(g,cover?:images.firstOrNull { it.isCover }?.path?:images.firstOrNull()?.path,Modifier.fillMaxWidth().heightIn(max=420.dp).aspectRatio(1f))}
             if(images.size>1)Row(Modifier.padding(vertical=8.dp),horizontalArrangement=Arrangement.spacedBy(8.dp)){images.take(9).forEach { image->Box(Modifier.size(48.dp).clickable{cover=image.path}){GarmentPhoto(g,image.path,Modifier.fillMaxSize())}}}
             StageReveal(1){Column{
-                StudioHeading(g.brand.ifBlank { "YOUR PIECE" },g.name,"${g.type} · 标码 ${g.sizeLabel.ifBlank { "未记录" }}")
+                StudioHeading("",g.name,"${g.type} · 标码 ${g.sizeLabel.ifBlank { "未记录" }}")
                 if(Styling.slot(g.type)!=Styling.Slot.NONE)Button(onClick={onStyle(g.id)},modifier=Modifier.fillMaxWidth().heightIn(min=48.dp)){Text("用这件搭配")}
                 Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween){TextButton(onClick={vm.favorite(g.id)}){Icon(if(g.favorite)Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,contentDescription=null);Spacer(Modifier.width(6.dp));Text(if(g.favorite)"已收藏" else "收藏")};TextButton(onClick={onEdit(g.id)}){Text("编辑单品")}}
             }}

@@ -35,10 +35,10 @@ fun OutfitsScreen(vm:AppViewModel,onNew:()->Unit,onEdit:(Long)->Unit,onCopy:(Lon
     val outfits by vm.outfits.collectAsState();val links by vm.outfitPieces.collectAsState();val garments by vm.garments.collectAsState();val images by vm.imageLibrary.collectAsState()
     var query by remember { mutableStateOf("") }
     val shown=outfits.filter { (it.name+it.tags+it.occasion).contains(query,true) }
-    LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(24.dp)){
+    LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
         item {StageReveal(0){Column{StudioHeading("","我的搭配","把喜欢的组合留下，下次直接拿来穿。");Button(onClick=onNew){Icon(Icons.Outlined.Add,contentDescription=null);Text("新建搭配")}}}}
         if(outfits.isNotEmpty())item {OutlinedTextField(query,{query=it},placeholder={Text("搜索名称、风格、场合")},singleLine=true,modifier=Modifier.fillMaxWidth())}
-        if(shown.isEmpty())item {Column(Modifier.padding(vertical=40.dp)){Text(if(outfits.isEmpty())"还没有保存搭配" else "没有找到匹配的搭配",style=Typography2.sectionTitle);Spacer(Modifier.height(12.dp));Text("先选一件想穿的，其他部分可以慢慢调整。",style=Typography2.body,color=FitTheme.colors.textSub)}}
+        if(shown.isEmpty())item {Column(Modifier.padding(vertical=8.dp)){Text(if(outfits.isEmpty())"还没有保存搭配" else "没有找到匹配的搭配",style=Typography2.sectionTitle);Spacer(Modifier.height(8.dp));Text("先选一件想穿的，其他部分可以慢慢调整。",style=Typography2.body,color=FitTheme.colors.textSub)}}
         items(shown,key={it.id}){o->StageReveal(1){Column{
             val pieces=links.filter { it.outfitId==o.id }.sortedBy { it.sortOrder }.mapNotNull { p->garments.find { it.id==p.garmentId } }
             Box(Modifier.clickable{onEdit(o.id)}){OutfitBoard(pieces,images,o.anchorId)}
@@ -75,13 +75,13 @@ fun OutfitEditorScreen(vm:AppViewModel,initialAnchor:Long,editId:Long,copyId:Lon
     StudioSubPage(if(editId>0&&!asNew)"调整这套搭配" else "从这一件开始",onBack){
         if(anchor==null&&selected.isEmpty()){
             LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)){
-                item{StudioHeading("START WITH A PIECE","先选一件想穿的","推荐只会使用你已有的衣物。")}
+                item{StudioHeading("","先选一件想穿的","推荐只会使用你已有的衣物。")}
                 if(available.isEmpty())item{StudioNote("衣橱还没有可参与搭配的衣物，请先返回录入。")}
                 items(available,key={it.id}){g->TextButton(onClick={choose(g)},modifier=Modifier.fillMaxWidth().heightIn(min=56.dp)){Text(g.name,style=Typography2.body)}}
             };return@StudioSubPage
         }
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)){
-            StudioHeading("STYLE AROUND IT","保留这一件，换出新的可能","搭配不绑定日期，可以反复修改和使用。")
+            StudioHeading("","保留这一件，换出新的可能","搭配不绑定日期，可以反复修改和使用。")
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically){Icon(Icons.Outlined.Lock,contentDescription=null,tint=MaterialTheme.colorScheme.primary);Spacer(Modifier.width(8.dp));Text(garments.find { it.id==anchor }?.name?:"尚未选择起搭单品",style=Typography2.cardTitle,modifier=Modifier.weight(1f));TextButton(onClick={picker="anchor"}){Text("更换")}}
             if(suggestions.size>1)FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){suggestions.forEachIndexed { n,s -> FilterChip(colors=FilterChipDefaults.filterChipColors(selectedContainerColor=if(FitTheme.colors.isDark) FitTheme.colors.surfaceVariant else PrimaryLight, selectedLabelColor=if(FitTheme.colors.isDark) FitTheme.colors.textMain else PrimaryDark),selected=selected==s.ids,onClick={selected=s.ids},label={Text("方案 ${n+1}")},modifier=Modifier.heightIn(min=44.dp)) }}
             Spacer(Modifier.height(12.dp));val pieces=selected.mapNotNull { id->garments.find { it.id==id } }
@@ -116,9 +116,21 @@ object StudioPalettes{val all=listOf(StudioPalette("blue","蓝灰之间","柔和
 fun InspirationScreen(vm:AppViewModel,onPalette:(String)->Unit,onStyle:(Long)->Unit,onChat:()->Unit={}){
     val garments by vm.garments.collectAsState()
     val aiPalettes by vm.aiPalettes.collectAsState()
-    LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(28.dp)){
-        item{StageReveal(0){StudioHeading("COLOUR & IDEAS","配色灵感","好看的颜色，最终落到你自己的衣物上。")}}
-        item{AiPaletteCard(vm,onChat)}
+    LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(16.dp)){
+        item{StageReveal(0){StudioHeading("","配色灵感","好看的颜色，最终落到你自己的衣物上。")}}
+        item{AiPaletteCard(vm)}
+        item{
+            // 独立入口：配色问答（与 AI 色板生成分离）
+            Surface(onClick=onChat,shape=RoundedCornerShape(16.dp),color=FitTheme.colors.surface,border=BorderStroke(1.dp,FitTheme.colors.line),modifier=Modifier.fillMaxWidth()){
+                Row(Modifier.padding(16.dp),verticalAlignment=Alignment.CenterVertically){
+                    Column(Modifier.weight(1f)){
+                        Text("配色问答",style=Typography2.cardTitle,color=FitTheme.colors.textMain)
+                        Spacer(Modifier.height(4.dp));Text("和 AI 聊聊你的配色问题",style=Typography2.caption,color=FitTheme.colors.textSub)
+                    }
+                    Text("›",fontSize=18.sp,color=FitTheme.colors.outline)
+                }
+            }
+        }
         items(aiPalettes,key={it.id}){p->PaletteCard(p,badge="AI 生成",onPalette=onPalette)}
         items(StudioPalettes.all,key={it.id}){p->PaletteCard(p,onPalette=onPalette)}
         item{StageReveal(2){StudioNote("这是配色灵感示例，不代表你的个人四季色彩结论。主色可以在衣物编辑中修正。")}}
@@ -149,19 +161,14 @@ private fun PaletteCard(p:StudioPalette,badge:String?=null,onPalette:(String)->U
 }
 @OptIn(ExperimentalLayoutApi::class,ExperimentalMaterial3Api::class)
 @Composable
-private fun AiPaletteCard(vm:AppViewModel,onChat:()->Unit){
+private fun AiPaletteCard(vm:AppViewModel){
     val hasKey by vm.apiKeyState.collectAsState()
     val busy by vm.aiBusy.collectAsState()
     var keyword by remember { mutableStateOf("") }
     var useWardrobe by remember { mutableStateOf(true) }
     Surface(shape=RoundedCornerShape(16.dp),color=FitTheme.colors.surface,border=BorderStroke(1.dp,FitTheme.colors.line),modifier=Modifier.fillMaxWidth()){
         Column(Modifier.padding(16.dp)){
-            Row(verticalAlignment=Alignment.CenterVertically){
-                Text("AI 配色",style=Typography2.cardTitle,color=FitTheme.colors.textMain)
-                Spacer(Modifier.width(8.dp));Surface(shape=RoundedCornerShape(999.dp),color=PrimaryLight){Text("AI",fontSize=10.sp,color=PrimaryDark,modifier=Modifier.padding(horizontal=8.dp,vertical=2.dp))}
-                Spacer(Modifier.weight(1f))
-                TextButton(onClick=onChat,contentPadding=PaddingValues(horizontal=0.dp),modifier=Modifier.heightIn(min=36.dp)){Text("配色问答 ›",fontSize=13.sp,color=MaterialTheme.colorScheme.primary)}
-            }
+            Text("AI 配色",style=Typography2.cardTitle,color=FitTheme.colors.textMain)
             Spacer(Modifier.height(6.dp))
             Text(if(hasKey)"输入一个主题，AI 结合配色知识为你生成专属配色。" else "配置 DeepSeek API Key 后可用（我的 → AI 功能）。",style=Typography2.caption,color=FitTheme.colors.textSub)
             if(hasKey){
@@ -190,7 +197,7 @@ fun CompareScreen(vm:AppViewModel,candidateId:Long,onBack:()->Unit){
     var referenceId by remember { mutableStateOf<Long?>(null) }
     val candidates=garments.filter { it.id!=candidateId&&it.type==candidate?.type }.sortedByDescending { FitRating.from(it.fit)==FitRating.FIT }
     StudioSubPage("对比尺码",onBack){Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)){
-        StudioHeading("FIT REFERENCE","用熟悉的衣物作参照","选择一件同类型、你了解实穿感受的衣物。")
+        StudioHeading("","用熟悉的衣物作参照","选择一件同类型、你了解实穿感受的衣物。")
         Text(candidate?.name?:"当前衣物已不存在",style=Typography2.sectionTitle)
         if(candidates.isEmpty())StudioNote("还没有其他同类型衣物可对照。录入后即可并排查看。")
         candidates.forEach { g->Row(Modifier.fillMaxWidth().clickable{referenceId=g.id}.heightIn(min=56.dp),verticalAlignment=Alignment.CenterVertically){RadioButton(selected=g.id==referenceId,onClick={referenceId=g.id});Column{Text(g.name,style=Typography2.body);Text("标码 ${g.sizeLabel.ifBlank{"未记录"}} · ${g.fit}",style=Typography2.caption,color=FitTheme.colors.textSub)}}}

@@ -72,4 +72,8 @@ object ColorNames {
         val s = input.trim().replace(" ", "")
         return map.containsKey(s) || map.containsKey(s.removeSuffix("颜色").removeSuffix("的").removeSuffix("色"))
     }
+
+    /** hex → 中文色名反查（取第一个匹配的规范名，用于衣橱摘要等展示场景） */
+    fun nameOf(hex: String): String? =
+        map.entries.firstOrNull { it.value.equals(hex.trim().uppercase(), ignoreCase = true) }?.key
 }

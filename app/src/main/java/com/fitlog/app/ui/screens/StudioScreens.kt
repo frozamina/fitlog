@@ -111,31 +111,77 @@ fun OutfitEditorScreen(vm:AppViewModel,initialAnchor:Long,editId:Long,copyId:Lon
 
 data class StudioPalette(val id:String,val name:String,val description:String,val colors:List<String>)
 object StudioPalettes{val all=listOf(StudioPalette("blue","蓝灰之间","柔和的蓝色做主角，灰色稳定整体，浅色留出呼吸感。",listOf("#A9BEC7","#555C5B","#E8E5DA")),StudioPalette("earth","柔和大地色","灰绿与燕麦色相互衔接，奶白提亮。不同材质让近似色更有层次。",listOf("#788674","#C4B9A4","#E8E5DA")),StudioPalette("mono","黑白有层次","把注意力留给剪裁与面料，在黑白之间加入灰色，让过渡更柔和。",listOf("#292D2C","#A7ADB5","#F5F3EE")))}
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun InspirationScreen(vm:AppViewModel,onPalette:(String)->Unit,onStyle:(Long)->Unit){
+fun InspirationScreen(vm:AppViewModel,onPalette:(String)->Unit,onStyle:(Long)->Unit,onChat:()->Unit={}){
     val garments by vm.garments.collectAsState()
+    val aiPalettes by vm.aiPalettes.collectAsState()
     LazyColumn(Modifier.fillMaxSize(),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(28.dp)){
         item{StageReveal(0){StudioHeading("COLOUR & IDEAS","配色灵感","好看的颜色，最终落到你自己的衣物上。")}}
-        items(StudioPalettes.all,key={it.id}){p->
-            // 预解析颜色，避免每次重组都做字符串解析
-            val swatches=remember(p.id){p.colors.map{c->Color(android.graphics.Color.parseColor(c))}}
-            Surface(
-                shape=RoundedCornerShape(16.dp),
-                color=FitTheme.colors.surface,
-                border=BorderStroke(1.dp,FitTheme.colors.line),
-                modifier=Modifier.fillMaxWidth()
-            ){
-                Column(Modifier.padding(16.dp)){
-                    Text(p.name,style=Typography2.cardTitle,color=FitTheme.colors.textMain)
-                    Spacer(Modifier.height(6.dp));Text(p.description,style=Typography2.caption,color=FitTheme.colors.textSub)
-                    Spacer(Modifier.height(12.dp))
-                    Row(Modifier.fillMaxWidth().height(90.dp).clip(RoundedCornerShape(12.dp))){swatches.forEach { c->Box(Modifier.weight(1f).fillMaxHeight().background(c))}}
-                    TextButton(onClick={onPalette(p.id)},contentPadding=PaddingValues(horizontal=0.dp),modifier=Modifier.heightIn(min=44.dp)){Text("在衣橱中寻找相近颜色",fontSize=13.sp,color=MaterialTheme.colorScheme.primary)}
+        item{AiPaletteCard(vm,onChat)}
+        items(aiPalettes,key={it.id}){p->PaletteCard(p,badge="AI 生成",onPalette=onPalette)}
+        items(StudioPalettes.all,key={it.id}){p->PaletteCard(p,onPalette=onPalette)}
+        item{StageReveal(2){StudioNote("这是配色灵感示例，不代表你的个人四季色彩结论。主色可以在衣物编辑中修正。")}}
+        if(garments.any{Styling.slot(it.type)!=Styling.Slot.NONE})item{TextButton(onClick={onStyle(garments.first{Styling.slot(it.type)!=Styling.Slot.NONE}.id)}){Text("从一件已有单品开始搭配")}}
+    }
+}
+@Composable
+private fun PaletteCard(p:StudioPalette,badge:String?=null,onPalette:(String)->Unit){
+    // 预解析颜色，避免每次重组都做字符串解析
+    val swatches=remember(p.id){p.colors.map{c->Color(android.graphics.Color.parseColor(c))}}
+    Surface(
+        shape=RoundedCornerShape(16.dp),
+        color=FitTheme.colors.surface,
+        border=BorderStroke(1.dp,FitTheme.colors.line),
+        modifier=Modifier.fillMaxWidth()
+    ){
+        Column(Modifier.padding(16.dp)){
+            Row(verticalAlignment=Alignment.CenterVertically){
+                Text(p.name,style=Typography2.cardTitle,color=FitTheme.colors.textMain)
+                if(badge!=null){Spacer(Modifier.width(8.dp));Surface(shape=RoundedCornerShape(999.dp),color=PrimaryLight){Text(badge,fontSize=10.sp,color=PrimaryDark,modifier=Modifier.padding(horizontal=8.dp,vertical=2.dp))}}
+            }
+            Spacer(Modifier.height(6.dp));Text(p.description,style=Typography2.caption,color=FitTheme.colors.textSub)
+            Spacer(Modifier.height(12.dp))
+            Row(Modifier.fillMaxWidth().height(90.dp).clip(RoundedCornerShape(12.dp))){swatches.forEach { c->Box(Modifier.weight(1f).fillMaxHeight().background(c))}}
+            TextButton(onClick={onPalette(p.id)},contentPadding=PaddingValues(horizontal=0.dp),modifier=Modifier.heightIn(min=44.dp)){Text("在衣橱中寻找相近颜色",fontSize=13.sp,color=MaterialTheme.colorScheme.primary)}
+        }
+    }
+}
+@OptIn(ExperimentalLayoutApi::class,ExperimentalMaterial3Api::class)
+@Composable
+private fun AiPaletteCard(vm:AppViewModel,onChat:()->Unit){
+    val hasKey by vm.apiKeyState.collectAsState()
+    val busy by vm.aiBusy.collectAsState()
+    var keyword by remember { mutableStateOf("") }
+    var useWardrobe by remember { mutableStateOf(true) }
+    Surface(shape=RoundedCornerShape(16.dp),color=FitTheme.colors.surface,border=BorderStroke(1.dp,FitTheme.colors.line),modifier=Modifier.fillMaxWidth()){
+        Column(Modifier.padding(16.dp)){
+            Row(verticalAlignment=Alignment.CenterVertically){
+                Text("AI 配色",style=Typography2.cardTitle,color=FitTheme.colors.textMain)
+                Spacer(Modifier.width(8.dp));Surface(shape=RoundedCornerShape(999.dp),color=PrimaryLight){Text("AI",fontSize=10.sp,color=PrimaryDark,modifier=Modifier.padding(horizontal=8.dp,vertical=2.dp))}
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick=onChat,contentPadding=PaddingValues(horizontal=0.dp),modifier=Modifier.heightIn(min=36.dp)){Text("配色问答 ›",fontSize=13.sp,color=MaterialTheme.colorScheme.primary)}
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(if(hasKey)"输入一个主题，AI 结合配色知识为你生成专属配色。" else "配置 DeepSeek API Key 后可用（我的 → AI 功能）。",style=Typography2.caption,color=FitTheme.colors.textSub)
+            if(hasKey){
+                Spacer(Modifier.height(10.dp))
+                FitTextField(keyword,{keyword=it},Modifier.fillMaxWidth(),placeholder="如：雾蓝通勤、秋日大地色")
+                Spacer(Modifier.height(8.dp))
+                FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp)){
+                    listOf("雾蓝通勤","秋日大地色","黑白极简").forEach { t->FilterChip(colors=FilterChipDefaults.filterChipColors(selectedContainerColor=if(FitTheme.colors.isDark) FitTheme.colors.surfaceVariant else PrimaryLight, selectedLabelColor=if(FitTheme.colors.isDark) FitTheme.colors.textMain else PrimaryDark),selected=false,onClick={keyword=t},label={Text(t,fontSize=13.sp)},modifier=Modifier.heightIn(min=34.dp))}
+                }
+                Spacer(Modifier.height(4.dp))
+                Row(verticalAlignment=Alignment.CenterVertically){
+                    CompactCheckbox(useWardrobe,{useWardrobe=it})
+                    Text("结合我的衣橱（仅发送颜色×类别统计）",style=Typography2.caption,color=FitTheme.colors.textSub)
+                }
+                Spacer(Modifier.height(10.dp))
+                Button(onClick={vm.generatePalette(keyword,useWardrobe)},enabled=!busy&&keyword.isNotBlank(),modifier=Modifier.fillMaxWidth().heightIn(min=44.dp)){
+                    Text(if(busy)"生成中…" else "生成配色")
                 }
             }
         }
-        item{StageReveal(2){StudioNote("这是配色灵感示例，不代表你的个人四季色彩结论。主色可以在衣物编辑中修正。")}}
-        if(garments.any{Styling.slot(it.type)!=Styling.Slot.NONE})item{TextButton(onClick={onStyle(garments.first{Styling.slot(it.type)!=Styling.Slot.NONE}.id)}){Text("从一件已有单品开始搭配")}}
     }
 }
 @Composable

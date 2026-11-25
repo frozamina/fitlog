@@ -68,8 +68,9 @@ fun AppNav(){
                 ListScreen(vm,onOpen={nav.navigate("detail/$it")},onAdd={nav.navigate("edit/-1")},onStyle={style(it)},paletteId=e.arguments?.getString("palette").orEmpty())
             }
             composable("outfits"){OutfitsScreen(vm,onNew={style(0)},onEdit={style(0,edit=it)},onCopy={style(0,copy=it)})}
-            composable("inspiration"){InspirationScreen(vm,onPalette={nav.navigate("closet?palette=$it")},onStyle={style(it)})}
+            composable("inspiration"){InspirationScreen(vm,onPalette={nav.navigate("closet?palette=$it")},onStyle={style(it)},onChat={nav.navigate("chat")})}
             composable("settings"){StudioSubPage("我的",onBack={nav.popBackStack()}){SettingsScreen(vm,onBody={nav.navigate("body")})}}
+            composable("chat"){ChatScreen(vm,onBack={nav.popBackStack()})}
             composable("body"){StudioSubPage("身体与尺码",onBack={nav.popBackStack()}){HomeScreen(vm,onAdd={nav.navigate("edit/-1")},onOpenGarment={nav.navigate("detail/$it")})}}
             composable("detail/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})){e->val id=e.arguments!!.getLong("id");DetailScreen(vm,id,onBack={nav.popBackStack()},onEdit={nav.navigate("edit/$it")},onStyle={style(it)},onCompare={nav.navigate("compare/$it")})}
             composable("edit/{id}",arguments=listOf(navArgument("id"){type=NavType.LongType})){e->EditScreen(vm,e.arguments!!.getLong("id"),onBack={nav.popBackStack()})}

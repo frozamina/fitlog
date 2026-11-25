@@ -20,7 +20,8 @@ import com.fitlog.app.vm.AppViewModel
 fun ListScreen(vm:AppViewModel,onOpen:(Long)->Unit,onAdd:()->Unit={},onStyle:(Long)->Unit={},paletteId:String=""){
     val garments by vm.garments.collectAsState();val images by vm.imageLibrary.collectAsState()
     var query by remember { mutableStateOf("") };var category by remember { mutableStateOf("全部") };var favorite by remember { mutableStateOf(false) };var palette by remember(paletteId){mutableStateOf(paletteId)}
-    val group=StudioPalettes.all.find { it.id==palette }
+    val aiPalettes by vm.aiPalettes.collectAsState()
+    val group=StudioPalettes.all.find { it.id==palette } ?: aiPalettes.find { it.id==palette }
     val shown=garments.filter { g -> (category=="全部"||g.type==category)&&(!favorite||g.favorite)&&(query.isBlank()||(g.name+" "+g.brand).contains(query,true))&&(group==null||Styling.matchesPalette(g.mainColor,group.colors)) }
     LazyVerticalGrid(columns=GridCells.Adaptive(156.dp),modifier=Modifier.fillMaxSize(),contentPadding=PaddingValues(start=20.dp,end=20.dp,bottom=88.dp),horizontalArrangement=Arrangement.spacedBy(16.dp),verticalArrangement=Arrangement.spacedBy(26.dp)){
         item(span={GridItemSpan(maxLineSpan)}){StageReveal(0){Column{

@@ -78,4 +78,91 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     suspend fun dump() = repo.dumpAll()
     suspend fun restore(data: com.fitlog.app.data.BackupData) = repo.restore(data)
+
+    // ---- AI（DeepSeek 配色灵感 / 问答） ----
+    private val ai = com.fitlog.app.data.AiRepository(app.applicationContext)
+    val apiKeyState = kotlinx.coroutines.flow.MutableStateFlow(ai.hasKey())
+    val apiKeyMask = kotlinx.coroutines.flow.MutableStateFlow(ai.mask())
+    val aiPalettes = kotlinx.coroutines.flow.MutableStateFlow<List<com.fitlog.app.ui.screens.StudioPalette>>(emptyList())
+    val aiBusy = kotlinx.coroutines.flow.MutableStateFlow(false)
+    val chatMessages = kotlinx.coroutines.flow.MutableStateFlow<List<com.fitlog.app.data.ChatMessage>>(emptyList())
+
+    fun saveApiKey(key: String) {
+        ai.saveKey(key)
+        apiKeyState.value = ai.hasKey()
+        apiKeyMask.value = ai.mask()
+    }
+
+    fun clearApiKey() {
+        ai.clearKey()
+        apiKeyState.value = false
+        apiKeyMask.value = ai.mask()
+    }
+
+    /** AI 生成配色色板（jsonMode，失败走 toast 错误，硬编码色板不受影响） */
+    fun generatePalette(keyword: String, useWardrobe: Boolean) = viewModelScope.launch {
+        if (aiBusy.value) return@launch
+        val kw = keyword.trim()
+        if (kw.isEmpty()) return@launch
+        if (!ai.hasKey()) { errors.value = "请先在「我的 → AI 功能」中配置 API key"; return@launch }
+        aiBusy.value = true
+        try {
+            val digest = if (useWardrobe) com.fitlog.app.data.AiRepository.buildDigest(garments.value) else null
+            val content = com.fitlog.app.data.DeepSeekClient.chat(
+                apiKey = ai.key(), messages = ai.paletteMessages(kw, digest),
+                jsonMode = true, maxTokens = 300, temperature = 1.0
+            )
+            val p = com.fitlog.app.data.AiRepository.parsePalette(content)
+                ?: throw com.fitlog.app.data.DeepSeekClient.DeepSeekException("AI 返回的配色无法解析，请重试")
+            aiPalettes.value = listOf(
+                com.fitlog.app.ui.screens.StudioPalette("ai:${System.currentTimeMillis()}", p.name, p.description, p.colors)
+            ) + aiPalettes.value
+        } catch (e: Exception) {
+            errors.value = e.message ?: "AI 暂时不可用"
+        } finally { aiBusy.value = false }
+    }
+
+    /** 配色问答（SSE 流式：AI 消息逐字更新，首字前 UI 显示思考指示器） */
+    fun sendChat(text: String) {
+        val msg = text.trim()
+        if (msg.isEmpty() || aiBusy.value) return
+        if (!ai.hasKey()) {
+            chatMessages.value = chatMessages.value + com.fitlog.app.data.ChatMessage(
+                "assistant", "请先在「我的 → AI 功能」中配置 DeepSeek API key，再开始配色问答。", System.currentTimeMillis(), isError = true
+            )
+            return
+        }
+        val now = System.currentTimeMillis()
+        chatMessages.value = (chatMessages.value + com.fitlog.app.data.ChatMessage("user", msg, now)).takeLast(50)
+        aiBusy.value = true
+        viewModelScope.launch {
+            val history = chatMessages.value.filter { !it.isError }.dropLast(1) // 最后一条是刚发的 user 消息
+            val placeholder = com.fitlog.app.data.ChatMessage("assistant", "", now + 1)
+            chatMessages.value = chatMessages.value + placeholder
+            try {
+                val msgs = ai.chatMessages(msg, history)
+                val reply = com.fitlog.app.data.DeepSeekClient.chatStream(
+                    apiKey = ai.key(), messages = msgs, maxTokens = 500
+                ) { delta ->
+                    val list = chatMessages.value.toMutableList()
+                    if (list.isNotEmpty() && list.last().time == placeholder.time) {
+                        list[list.lastIndex] = list.last().copy(content = list.last().content + delta)
+                        chatMessages.value = list
+                    }
+                }
+                if (reply.isBlank()) throw com.fitlog.app.data.DeepSeekClient.DeepSeekException("AI 未返回内容，请重试")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                val list = chatMessages.value.toMutableList()
+                val err = com.fitlog.app.data.ChatMessage("assistant", e.message ?: "AI 暂时不可用", System.currentTimeMillis(), isError = true)
+                if (list.isNotEmpty() && list.last().time == placeholder.time && list.last().content.isBlank()) {
+                    list[list.lastIndex] = err
+                    chatMessages.value = list
+                } else chatMessages.value = chatMessages.value + err
+            } finally { aiBusy.value = false }
+        }
+    }
+
+    fun clearChat() { chatMessages.value = emptyList() }
 }

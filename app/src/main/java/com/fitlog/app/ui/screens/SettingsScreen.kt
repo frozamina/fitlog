@@ -42,6 +42,8 @@ fun SettingsScreen(vm: AppViewModel, onBody: () -> Unit = {}) {
     var addType by remember { mutableStateOf<String?>(null) }
     var newTplName by remember { mutableStateOf("") }
     var expandedType by remember { mutableStateOf<String?>(null) }
+    var showKeyDialog by remember { mutableStateOf(false) }
+    val keyMask by vm.apiKeyMask.collectAsState()
 
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
@@ -75,7 +77,7 @@ fun SettingsScreen(vm: AppViewModel, onBody: () -> Unit = {}) {
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
                 RowItem("", "导入恢复", "兼容旧备份；追加导入，不覆盖现有记录") { importLauncher.launch("application/zip") }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
-                RowItem("", "隐私说明", "所有数据仅存本机，不上传") { }
+                RowItem("", "隐私说明", "所有数据仅存本机，不上传；AI 功能可选开启，开启后仅发送颜色、类别等文字信息，不上传图片") { }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
                 RowItem("", "错误日志", if (hasCrashLog) "点此分享给开发者排查" else "暂无崩溃记录") {
                     val f = java.io.File(context.filesDir, "crash_log.txt")
@@ -83,6 +85,13 @@ fun SettingsScreen(vm: AppViewModel, onBody: () -> Unit = {}) {
                         BackupManager.shareFile(context, f, "text/plain")
                     } else toast = "没有错误日志"
                 }
+            }
+
+            SectionTitle("AI 功能")
+            CardBox {
+                RowItem("", "DeepSeek API Key", keyMask) { showKeyDialog = true }
+                Divider(color = FitTheme.colors.line, thickness = 1.dp)
+                RowItem("", "AI 配色与问答", "灵感页 AI 生成色板 · 配色问答聊天，配置 key 后可用") { }
             }
 
             SectionTitle("属性模板")
@@ -132,7 +141,7 @@ fun SettingsScreen(vm: AppViewModel, onBody: () -> Unit = {}) {
 
             SectionTitle("其他")
             CardBox {
-                RowItem("", "关于 服集 FitLog", "v0.4.1 · 鼠尾草绿") { }
+                RowItem("", "关于 服集 FitLog", "v0.4.8 · 鼠尾草绿") { }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
                 RowItem("", "技术栈", "Kotlin · Compose · Room") { }
                 Divider(color = FitTheme.colors.line, thickness = 1.dp)
@@ -178,6 +187,46 @@ fun SettingsScreen(vm: AppViewModel, onBody: () -> Unit = {}) {
             delay(2200)
             toast = null
         }
+    }
+
+    if (showKeyDialog) {
+        var keyInput by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showKeyDialog = false },
+            shape = RoundedCornerShape(Radius.hero),
+            containerColor = FitTheme.colors.surface,
+            title = { Text("配置 DeepSeek API Key") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = keyInput,
+                        onValueChange = { keyInput = it },
+                        singleLine = true,
+                        placeholder = { Text("sk-…") },
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Key 仅保存在本机，用于直接调用 DeepSeek；获取：platform.deepseek.com",
+                        style = Typography2.caption, color = FitTheme.colors.textSub
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (keyInput.isNotBlank()) vm.saveApiKey(keyInput)
+                    showKeyDialog = false
+                    toast = if (keyInput.isNotBlank()) "已保存，AI 功能已开启" else null
+                }) { Text("保存") }
+            },
+            dismissButton = {
+                Row {
+                    TextButton(onClick = { vm.clearApiKey(); showKeyDialog = false; toast = "已清除 API key" }) { Text("清除") }
+                    TextButton(onClick = { showKeyDialog = false }) { Text("取消") }
+                }
+            }
+        )
     }
 }
 

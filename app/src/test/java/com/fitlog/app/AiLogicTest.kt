@@ -62,6 +62,19 @@ class AiLogicTest {
         assertEquals(1, hits.size)
     }
 
+    @Test
+    fun `三色结构问题命中新增条目`() {
+        val es = entries + entry("three-color-cap", "搭配技巧", listOf("三色", "三个颜色", "三色原则", "太花"))
+        assertTrue(ColorKnowledge.searchIn(es, "全身不要超过三个颜色").any { it.id == "three-color-cap" })
+        assertTrue(ColorKnowledge.searchIn(es, "颜色太多太花怎么办").any { it.id == "three-color-cap" })
+    }
+
+    @Test
+    fun `辅色问题命中新增条目`() {
+        val es = entries + entry("accent-third-color", "搭配技巧", listOf("辅色", "加个颜色", "点缀"))
+        assertTrue(ColorKnowledge.searchIn(es, "这套穿搭想加个颜色怎么加").any { it.id == "accent-third-color" })
+    }
+
     // ---- 注入拼接 ----
 
     @Test

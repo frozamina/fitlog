@@ -14,8 +14,8 @@ android {
         applicationId = "com.fitlog.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 19
-        versionName = "0.4.13"
+        versionCode = 20
+        versionName = "0.4.14"
     }
 
     buildTypes {

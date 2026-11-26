@@ -1,6 +1,6 @@
 # 服集 FitLog
 
-**当前开发版本：v0.4.13（versionCode 19） · 最新源码在默认分支 main。**
+**当前开发版本：v0.4.14（versionCode 20） · 最新源码在默认分支 main。**
 
 以一件想穿的衣服为起点，从自己的衣橱中找到搭配。原生 Android、本地存储、无需账号，采用鼠尾草绿 Sage & Ivory 界面。
 
@@ -25,9 +25,9 @@
 
 ## 预览与安装
 
-最新预览 APK 为 `FitLog-v0.4.13.apk`（由助手在本机构建后交付到用户 Downloads，不发布 GitHub Release）。
+最新预览 APK 为 `FitLog-v0.4.14.apk`（由助手在本机构建后交付到用户 Downloads，不发布 GitHub Release）。
 
-预览包为 `com.fitlog.app.preview`，与原版 `com.fitlog.app` 独立共存。v0.4.13 预览 APK 与此前预览 APK 的签名一致，可直接覆盖安装。不要卸载旧应用来迁移数据；旧数据通过备份导入，导入采用追加方式。
+预览包为 `com.fitlog.app.preview`，与原版 `com.fitlog.app` 独立共存。v0.4.14 预览 APK 与此前预览 APK 的签名一致，可直接覆盖安装。不要卸载旧应用来迁移数据；旧数据通过备份导入，导入采用追加方式。
 
 网页是独立的 UI 交互模拟，使用示例数据并保存在浏览器；不会读取手机数据，原生备份相关操作并未在网页实现。修改 Android 时需要同步维护网页，GitHub 更新不会自动部署在线站点。
 
@@ -40,7 +40,7 @@ JDK 17、Android SDK Platform 34、Build Tools 34.0.0，支持 Android 8.0+（AP
 ./gradlew :app:assemblePreview
 ```
 
-预览 APK 输出到 `app/build/outputs/apk/preview/`。开发前配置本机 SDK 路径，勿提交 local.properties 或签名密钥。最近 v0.4.13 的测试与构建通过；AI 功能需用户在真机配置 DeepSeek API key 后验证联网调用。
+预览 APK 输出到 `app/build/outputs/apk/preview/`。开发前配置本机 SDK 路径，勿提交 local.properties 或签名密钥。最近 v0.4.14 的测试与构建通过；AI 功能需用户在真机配置 DeepSeek API key 后验证联网调用。
 
 ## 后续维护
 

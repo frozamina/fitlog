@@ -35,7 +35,7 @@ fun AppNav(){
     fun style(id:Long,edit:Long=0,copy:Long=0){nav.navigate("style/$id?edit=$edit&copy=$copy")}
     val error by vm.errors.collectAsState()
     Scaffold(containerColor=FitTheme.colors.bg,
-        topBar={if(top)TopAppBar(title={Text("服集 FitLog",fontSize=27.sp,color=FitTheme.colors.textMain)},actions={TextButton(onClick={nav.navigate("settings")}){Icon(Icons.Outlined.Tune,contentDescription=null,modifier=Modifier.size(18.dp));Spacer(Modifier.width(6.dp));Text("我的",fontSize=14.sp)}},colors=TopAppBarDefaults.topAppBarColors(containerColor=FitTheme.colors.bg))},
+        topBar={if(top)Row(Modifier.fillMaxWidth().background(FitTheme.colors.bg).statusBarsPadding().heightIn(min=36.dp).padding(horizontal=8.dp),horizontalArrangement=Arrangement.End,verticalAlignment=Alignment.CenterVertically){TextButton(onClick={nav.navigate("settings")}){Icon(Icons.Outlined.Tune,contentDescription=null,modifier=Modifier.size(18.dp));Spacer(Modifier.width(6.dp));Text("我的",fontSize=14.sp)}}},
         bottomBar={if(top)Row(
             Modifier.fillMaxWidth().background(FitTheme.colors.surface).navigationBarsPadding().height(58.dp),
             horizontalArrangement=Arrangement.SpaceEvenly,
